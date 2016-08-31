@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_marginRight="30dp"
+    android:layout_marginLeft="30dp"
+    android:layout_height="50dp"
+    android:background="#FFFFFF"
+    tools:context=".ListResultsActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="test"
+        android:id="@+id/txv_province"
+        android:layout_marginLeft="20dp"
+        android:textColor="#000000"
+        android:layout_centerVertical="true"/>
+</RelativeLayout>

@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PriceFuelActivity">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="#4AA02C">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:padding="5dp"
+            android:background="@null"
+            android:src="@drawable/ic_chevron_left_black_24dp"
+            android:id="@+id/imbBack"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Test"
+            android:textColor="#FFFFFF"
+            android:id="@+id/txvNameBrandL"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:textSize="20dp"/>
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="FUEL TYPE"
+        android:id="@+id/txvFuelType"
+        android:textColor="#4AA02C"
+        android:textSize="20dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="80dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:text="PRICE (BATH)"
+        android:textSize="20dp"
+        android:textColor="#4AA02C"
+        android:layout_marginRight="20dp"
+        android:layout_alignBaseline="@+id/txvFuelType"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="Diesel"
+        android:layout_below="@+id/txvFuelType"
+        android:textColor="#000000"
+        android:id="@+id/txvDiesel"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="Diesel Premium"
+        android:layout_below="@+id/txvDiesel"
+        android:textColor="#000000"
+        android:id="@+id/txvDieselPremium"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#000000"
+        android:textSize="15dp"
+        android:text="Gasohol91"
+        android:layout_below="@+id/txvDieselPremium"
+        android:id="@+id/txvGasohol91"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="Gasohol95"
+        android:textColor="#000000"
+        android:layout_below="@+id/txvGasohol91"
+        android:id="@+id/txvGasohol95"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:textColor="#000000"
+        android:text="GasoholE20"
+        android:layout_below="@+id/txvGasohol95"
+        android:id="@+id/txvGasoholE20"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="GasoholE85"
+        android:textColor="#000000"
+        android:layout_below="@+id/txvGasoholE20"
+        android:id="@+id/txvGasohole85"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="Gasoline91"
+        android:layout_below="@+id/txvGasohole85"
+        android:textColor="#000000"
+        android:id="@+id/txvGasoline91"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="Gasoline95"
+        android:layout_below="@+id/txvGasoline91"
+        android:textColor="#000000"
+        android:id="@+id/txvGasoline95"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#000000"
+        android:textSize="15dp"
+        android:text="NGV"
+        android:layout_below="@+id/txvGasoline95"
+        android:id="@+id/txvNgv"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="20.00"
+        android:textColor="#000000"
+        android:id="@+id/txvPriceDiesel"
+        android:layout_alignBaseline="@+id/txvDiesel"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="70dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="20.00"
+        android:textColor="#000000"
+        android:layout_below="@id/txvPriceDiesel"
+        android:layout_alignBaseline="@+id/txvDieselPremium"
+        android:layout_alignParentRight="true"
+        android:id="@+id/txvPriceDieselPremium"
+        android:layout_marginRight="70dp"/>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="20.00"
+        android:layout_alignBaseline="@+id/txvGasohol91"
+        android:id="@+id/txvPriceGasohol91"
+        android:textColor="#000000"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="70dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="20.00"
+        android:textColor="#000000"
+        android:layout_alignBaseline="@+id/txvGasohol95"
+        android:id="@+id/txvPriceGasohol95"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="70dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="20.00"
+        android:layout_alignBaseline="@+id/txvGasoholE20"
+        android:id="@+id/txvPriceGasoholE20"
+        android:textColor="#000000"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="70dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="20.00"
+        android:layout_alignBaseline="@+id/txvGasohole85"
+        android:id="@+id/txvPriceGasoholE85"
+        android:layout_alignParentRight="true"
+        android:textColor="#000000"
+        android:layout_marginRight="70dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="20.00"
+        android:layout_alignBaseline="@+id/txvGasoline91"
+        android:textColor="#000000"
+        android:id="@+id/txvPriceGasoline91"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="70dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:textColor="#000000"
+        android:text="20.00"
+        android:layout_alignBaseline="@+id/txvGasoline95"
+        android:id="@+id/txvPriceGasoline95"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="70dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:text="20.00"
+        android:textColor="#000000"
+        android:layout_alignBaseline="@+id/txvNgv"
+        android:id="@+id/txvPriceNgv"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="70dp"/>
+
+</RelativeLayout>

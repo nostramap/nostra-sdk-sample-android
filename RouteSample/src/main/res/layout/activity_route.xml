@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bottom_sheet"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".RouteActivity">
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:background="#4AA02C">
+
+        <Button
+            android:id="@+id/edtFromLocation"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="10dp"
+            android:background="#FFFFFF"
+            android:gravity="start|center_vertical"
+            android:hint="From Location"
+            android:longClickable="false"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:textStyle="italic" />
+
+        <Button
+            android:id="@+id/edtToLocation"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_below="@+id/edtFromLocation"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="15dp"
+            android:background="#FFFFFF"
+            android:gravity="start|center_vertical"
+            android:hint="To Location"
+            android:longClickable="false"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:textStyle="italic" />
+
+        <Button
+            android:id="@+id/btnVehicle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/edtFromLocation"
+            android:layout_alignStart="@+id/edtFromLocation"
+            android:layout_below="@+id/edtToLocation"
+            android:layout_marginTop="10dp"
+            android:background="@color/colorLightGreen"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="Car"
+            android:textColor="#FFFFFF" />
+    </RelativeLayout>
+
+    <com.esri.android.map.MapView
+        android:id="@+id/mapView"
+        initExtent="1.0672849926751213E7 593515.9027621585 1.1905414975501748E7 2375599.5357473083"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/relativeLayout"
+        android:layout_marginTop="160dp" />
+
+    <ImageButton
+        android:id="@+id/imbCurrentLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|bottom"
+        android:layout_marginBottom="80dp"
+        android:layout_marginLeft="20dp"
+        android:background="@null"
+        android:src="@drawable/style_btn_currentlocation" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="80dp"
+        android:layout_marginRight="16dp"
+        android:contentDescription="@null"
+        android:src="@drawable/logo_watermark_onmap" />
+
+    <RelativeLayout
+        android:id="@+id/layoutMinute"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom"
+        android:background="#FFFFFF"
+        android:visibility="invisible">
+
+        <ImageButton
+            android:id="@+id/imbDirection"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:background="@null"
+            android:src="@drawable/ic_format_list_bulleted_black_24dp" />
+
+        <TextView
+            android:id="@+id/txvMinutes"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="25dp"
+            android:textColor="#000000" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="20dp"
+        app:layout_anchor="@+id/relativeLayout"
+        app:layout_anchorGravity="bottom|end">
+
+        <ImageButton
+            android:id="@+id/imbNavigation"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="@drawable/bg_navigation"
+            android:padding="5dp"
+            android:src="@drawable/ic_navigation_48px" />
+    </RelativeLayout>
+
+    <include layout="@layout/bottomsheet" />
+
+</android.support.design.widget.CoordinatorLayout>

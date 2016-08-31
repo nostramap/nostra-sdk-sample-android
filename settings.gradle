@@ -1,0 +1,11 @@
+include ':MapSample',
+        ':ServiceAreaSample',
+        ':RouteSample',
+        ':ClosestFacilitySample',
+        ':MultiModalSample',
+        ':DynamicContentSample',
+        ':WeatherSample',
+        ':FuelSample',
+        ':IdentifySample',
+        ':SearchSample',
+        ':AddressSearchSample'

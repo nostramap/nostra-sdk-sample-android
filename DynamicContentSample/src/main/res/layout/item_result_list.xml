@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rllResult"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/imvLogo"
+        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp" />
+
+    <TextView
+        android:id="@+id/txvName"
+        android:text="สถานีบริการน้ำมันและก๊าซเอ็นจีวีปตท."
+        android:textSize="14sp"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:layout_marginLeft="70dp"
+        android:layout_marginStart="70dp"
+        android:layout_marginTop="10dp"
+        android:layout_toLeftOf="@+id/imvNext"
+        android:layout_toStartOf="@+id/imvNext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/txvAddress"
+        android:text="30/7 บลลากฟกวฟาวกวกว กฟวกวสฟหกว หงกมฟวหกฟง กฟงมกงฟง กฟมวงมวงกมฟง 29412"
+        android:textSize="13sp"
+        android:textColor="@android:color/black"
+        android:alpha="0.5"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:layout_alignLeft="@+id/txvName"
+        android:layout_alignStart="@+id/txvName"
+        android:layout_alignRight="@+id/txvName"
+        android:layout_alignEnd="@+id/txvName"
+        android:layout_below="@+id/txvName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/txvAddInfo"
+        android:text="บจ. มานะชัยบริการ"
+        android:textSize="13sp"
+        android:textColor="@color/green"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:layout_alignLeft="@+id/txvName"
+        android:layout_alignStart="@+id/txvName"
+        android:layout_alignRight="@+id/txvName"
+        android:layout_alignEnd="@+id/txvName"
+        android:layout_below="@+id/txvAddress"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <ImageView
+        android:id="@+id/imvNext"
+        app:srcCompat="@drawable/ic_keyboard_arrow_right"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_centerVertical="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <View
+        android:layout_below="@+id/txvAddInfo"
+        android:layout_marginTop="10dp"
+        android:background="#D0CECE"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+
+</RelativeLayout>

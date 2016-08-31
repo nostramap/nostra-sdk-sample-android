@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tab2"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".AttributeActivity">
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/txvHouseNo"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="20dp"
+                android:text="house_no"
+                android:textColor="#000000" />
+
+            <TextView
+                android:id="@+id/txvMoo"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/txvHouseNo"
+                android:layout_marginTop="20dp"
+                android:text="moo"
+                android:textColor="#000000" />
+
+            <TextView
+                android:id="@+id/txvSoi"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/txvMoo"
+                android:layout_marginTop="20dp"
+                android:text="soi"
+                android:textColor="#000000" />
+
+            <TextView
+                android:id="@+id/txvRoad"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/txvSoi"
+                android:layout_marginTop="20dp"
+                android:text="road"
+                android:textColor="#000000" />
+
+            <TextView
+                android:id="@+id/txvAdminLevel1"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/txvRoad"
+                android:layout_marginTop="20dp"
+                android:text="adminLevel1"
+                android:textColor="#000000" />
+
+            <TextView
+                android:id="@+id/txvAdminLevel2"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/txvAdminLevel1"
+                android:layout_marginTop="20dp"
+                android:text="adminLevel2"
+                android:textColor="#000000" />
+
+            <TextView
+                android:id="@+id/txvAdminLevel3"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/txvAdminLevel2"
+                android:layout_marginTop="20dp"
+                android:text="adminLevel3"
+                android:textColor="#000000" />
+
+            <TextView
+                android:id="@+id/txvPostcode"
+                style="@style/label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/txvAdminLevel3"
+                android:layout_marginTop="20dp"
+                android:text="postcode"
+                android:textColor="#000000" />
+
+
+            <EditText
+                android:id="@+id/edtHouseNo"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/txvHouseNo"
+                android:layout_marginLeft="120dp"
+                android:imeOptions="actionDone"
+                android:inputType="number"
+                android:maxLines="1" />
+
+            <EditText
+                android:id="@+id/edtMoo"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/txvMoo"
+                android:layout_below="@+id/edtHouseNo"
+                android:layout_marginLeft="120dp"
+                android:layout_marginTop="0dp"
+                android:imeOptions="actionDone"
+                android:inputType="number"
+                android:maxLines="1" />
+
+            <EditText
+                android:id="@+id/edtSoiL"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/txvSoi"
+                android:layout_below="@+id/edtMoo"
+                android:layout_marginLeft="120dp"
+                android:layout_marginTop="0dp"
+                android:imeOptions="actionDone"
+                android:inputType="textPostalAddress"
+                android:maxLines="1" />
+
+            <EditText
+                android:id="@+id/edtRoadL"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/txvRoad"
+                android:layout_below="@+id/edtSoiL"
+                android:layout_marginLeft="120dp"
+                android:layout_marginTop="0dp"
+                android:imeOptions="actionDone"
+                android:inputType="textPostalAddress"
+                android:maxLines="1" />
+
+            <EditText
+                android:id="@+id/edtAdminLevel1"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/txvAdminLevel1"
+                android:layout_below="@+id/edtRoadL"
+                android:layout_marginLeft="120dp"
+                android:layout_marginTop="0dp"
+                android:imeOptions="actionDone"
+                android:inputType="textPostalAddress"
+                android:maxLines="1" />
+
+            <EditText
+                android:id="@+id/edtAdminLevel2"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/txvAdminLevel2"
+                android:layout_below="@+id/edtAdminLevel1"
+                android:layout_marginLeft="120dp"
+                android:layout_marginTop="0dp"
+                android:imeOptions="actionDone"
+                android:inputType="textPostalAddress"
+                android:maxLines="1" />
+
+            <EditText
+                android:id="@+id/edtAdminLevel3"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/txvAdminLevel3"
+                android:layout_below="@+id/edtAdminLevel2"
+                android:layout_marginLeft="120dp"
+                android:layout_marginTop="0dp"
+                android:imeOptions="actionDone"
+                android:inputType="textPostalAddress"
+                android:maxLines="1" />
+
+            <EditText
+                android:id="@+id/edtPostcode"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/txvPostcode"
+                android:layout_below="@+id/edtAdminLevel3"
+                android:layout_marginLeft="120dp"
+                android:layout_marginTop="0dp"
+                android:imeOptions="actionDone"
+                android:inputType="number"
+                android:maxLines="1" />
+        </RelativeLayout>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/button_Search2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="130dp"
+        android:layout_marginLeft="10dp"
+        android:background="@color/colorAccent"
+        android:text="Search"
+        android:textColor="#FFFFFF"
+        android:textSize="14dp" />
+
+
+</RelativeLayout>

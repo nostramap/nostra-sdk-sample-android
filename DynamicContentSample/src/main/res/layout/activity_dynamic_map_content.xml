@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.nostra.android.sample.dynamiccontentsample.DynamicContentActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.esri.android.map.MapView
+                android:id="@+id/mapView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/txvHeader" />
+
+            <TextView
+                android:id="@+id/txvHeader"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:background="@color/green"
+                android:gravity="center"
+                android:text="DYNAMIC MAP CONTENT"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="58dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginStart="10dp">
+
+                <ImageView
+                    android:id="@+id/imvLayer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:tint="@android:color/white"
+                    app:srcCompat="@drawable/ic_layers" />
+
+                <ImageView
+                    android:id="@+id/imvBack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:tint="@android:color/white"
+                    android:visibility="gone"
+                    app:srcCompat="@drawable/ic_arrow_back" />
+            </FrameLayout>
+
+            <ImageButton
+                android:id="@+id/imbLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:background="@android:color/transparent"
+                android:padding="10dp"
+                android:src="@drawable/style_btn_currentlocation" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginBottom="16dp"
+                android:layout_marginRight="16dp"
+                android:contentDescription="@null"
+                android:src="@drawable/logo_watermark_onmap" />
+
+        </RelativeLayout>
+
+        <FrameLayout
+            android:id="@+id/frlContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <View
+            android:id="@+id/curtainView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0.5"
+            android:background="@android:color/black"
+            android:visibility="gone" />
+
+        <RelativeLayout
+            android:id="@+id/rllShare"
+            android:layout_width="340dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:background="#FAFAFA"
+            android:padding="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/txvShareHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="SHARE LOCATION"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txvShareUrl"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_below="@+id/txvShareHeader"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/border_textbox"
+                android:padding="10dp" />
+
+            <TextView
+                android:id="@+id/txvCopy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/txvShareUrl"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
+                android:text="COPY"
+                android:textColor="@color/green"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txvCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/txvShareUrl"
+                android:layout_marginBottom="10dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="10dp"
+                android:layout_toLeftOf="@+id/txvCopy"
+                android:layout_toStartOf="@+id/txvCopy"
+                android:text="CANCEL"
+                android:textColor="@color/green"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="200dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="#FAFAFA"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:background="@color/green"
+            android:gravity="center"
+            android:text="LAYERS"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rcvLayer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FAFAFA" />
+
+    </LinearLayout>
+
+</android.support.v4.widget.DrawerLayout>

@@ -1,0 +1,255 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:id="@+id/lnlDetail"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.nostra.android.sample.dynamiccontentsample.DMCDetailFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/txvHeader"
+            android:text="DETAIL"
+            android:textSize="20sp"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:background="@color/green"
+            android:layout_width="match_parent"
+            android:layout_height="58dp" />
+
+        <FrameLayout
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="58dp">
+
+            <ImageView
+                android:id="@+id/imvBack"
+                app:srcCompat="@drawable/ic_arrow_back"
+                android:tint="@android:color/white"
+                android:layout_gravity="center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </FrameLayout>
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/imvPicture"
+        app:srcCompat="@drawable/ic_image"
+        android:tint="@android:color/white"
+        android:background="#D6DADC"
+        android:scaleType="fitCenter"
+        android:layout_width="match_parent"
+        android:layout_height="140dp" />
+
+    <android.support.design.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <RelativeLayout
+                android:id="@+id/rllNameAddr"
+                android:background="@color/green"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="100dp">
+
+                <ImageView
+                    android:id="@+id/imvShowOnMap"
+                    app:srcCompat="@drawable/ic_place"
+                    android:tint="@android:color/white"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_marginEnd="5dp"
+                    android:padding="5dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp" />
+
+                <TextView
+                    android:id="@+id/txvName"
+                    android:text="dadadadadadadadadadada"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:layout_toLeftOf="@+id/imvShowOnMap"
+                    android:layout_toStartOf="@+id/imvShowOnMap"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/txvAddress"
+                    android:text="dadadadadadadadadadada"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:ellipsize="end"
+                    android:layout_below="@+id/txvName"
+                    android:layout_toLeftOf="@+id/imvShowOnMap"
+                    android:layout_toStartOf="@+id/imvShowOnMap"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="35dp"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <RelativeLayout
+                    android:id="@+id/rllDetail"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/imvMood"
+                        app:srcCompat="@drawable/ic_mood"
+                        android:tint="@color/green"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/txvDetail"
+                        android:text="dadadadadadadadadada"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/black"
+                        android:layout_toRightOf="@+id/imvMood"
+                        android:layout_toEndOf="@+id/imvMood"
+                        android:layout_alignTop="@+id/imvMood"
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginStart="15dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/rllInfo"
+                    android:visibility="gone"
+                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/imvInfo"
+                        app:srcCompat="@drawable/ic_info"
+                        android:tint="@color/green"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/txvName2"
+                        android:text="dadadadadadadadadada"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/black"
+                        android:layout_toRightOf="@+id/imvInfo"
+                        android:layout_toEndOf="@+id/imvInfo"
+                        android:layout_alignTop="@+id/imvInfo"
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginStart="15dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/rllTel"
+                    android:visibility="gone"
+                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/imvTel"
+                        app:srcCompat="@drawable/ic_phone"
+                        android:tint="@color/green"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/txvTel"
+                        android:text="dadadadadadadadadada"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/black"
+                        android:layout_toRightOf="@+id/imvTel"
+                        android:layout_toEndOf="@+id/imvTel"
+                        android:layout_alignTop="@+id/imvTel"
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginStart="15dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/rllWeb"
+                    android:visibility="gone"
+                    android:layout_marginTop="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/imvWeb"
+                        app:srcCompat="@drawable/ic_public"
+                        android:tint="@color/green"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/txvWeb"
+                        android:text="dadadadadadadadadada"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/black"
+                        android:layout_toRightOf="@+id/imvWeb"
+                        android:layout_toEndOf="@+id/imvWeb"
+                        android:layout_alignTop="@+id/imvWeb"
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginStart="15dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            app:layout_anchor="@+id/rllNameAddr"
+            app:layout_anchorGravity="bottom|right|end"
+            android:id="@+id/fabShare"
+            app:srcCompat="@drawable/ic_share"
+            app:backgroundTint="@android:color/white"
+            android:layout_marginRight="40dp"
+            android:layout_marginEnd="40dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </android.support.design.widget.CoordinatorLayout>
+
+</LinearLayout>

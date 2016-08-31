@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/searchActivity"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.nostra.android.sample.addresssearchsample.MapActivity">
+
+    <com.esri.android.map.MapView
+        android:id="@+id/mapView"
+        initExtent="1.0672849926751213E7 593515.9027621585 1.1905414975501748E7 2375599.5357473083"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ImageView
+        android:id="@+id/imvCurrentLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="20dp"
+        android:src="@drawable/style_btn_currentlocation" />
+
+    <EditText
+        android:id="@+id/edtSearch"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/border_textbox"
+        android:focusableInTouchMode="false"
+        android:textColorHint="#000000" />
+
+    <ImageView
+        android:id="@+id/imvSearch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/edtSearch"
+        android:layout_alignLeft="@+id/edtSearch"
+        android:layout_alignTop="@+id/edtSearch"
+        android:layout_marginLeft="5dp"
+        app:srcCompat="@drawable/ic_search_address" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="16dp"
+        android:layout_marginRight="16dp"
+        android:contentDescription="@null"
+        android:src="@drawable/logo_watermark_onmap" />
+</RelativeLayout>
+
+
+
