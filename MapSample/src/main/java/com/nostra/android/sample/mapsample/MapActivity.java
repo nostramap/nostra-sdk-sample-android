@@ -136,17 +136,14 @@ public class MapActivity extends AppCompatActivity {
 
         if (ntMapResults != null) {
             for (NTMapPermissionResult map : ntMapResults) {
-                // Error on map serviceId = 5, so we skip for now.
-                if (map.getServiceId() != 5) {
-                    if (map.getLayerType() == NTLayerType.TYPE_BASEMAP ||
-                            map.getLayerType() == NTLayerType.TYPE_IMAGERY) {
-                        baseMapList.add(map.getServiceName());
-                    } else if (map.getLayerType() == NTLayerType.TYPE_SPECIAL_LAYER) {
-                        layerList.add(map.getServiceName());
-                    }
-                    // Add all layer with hide by default.
-                    addMapLayer(map);
+                if (map.getLayerType() == NTLayerType.TYPE_BASEMAP ||
+                    map.getLayerType() == NTLayerType.TYPE_IMAGERY) {
+                    baseMapList.add(map.getServiceName());
+                } else if (map.getLayerType() == NTLayerType.TYPE_SPECIAL_LAYER) {
+                    layerList.add(map.getServiceName());
                 }
+                // Add all layer with hide by default.
+                addMapLayer(map);
             }
             ArrayAdapter<String> baseMapAdapter = new ArrayAdapter<>(MapActivity.this,
                     android.R.layout.simple_list_item_single_choice, baseMapList);
