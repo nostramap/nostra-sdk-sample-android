@@ -14,16 +14,16 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTAutocompleteService;
-import th.co.gissoft.nostrasdk.Base.NTLocationSearchService;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTCountry;
-import th.co.gissoft.nostrasdk.Parameter.NTAutocompleteParameter;
-import th.co.gissoft.nostrasdk.Parameter.NTLocationSearchParameter;
-import th.co.gissoft.nostrasdk.Result.NTAutocompleteResult;
-import th.co.gissoft.nostrasdk.Result.NTAutocompleteResultSet;
-import th.co.gissoft.nostrasdk.Result.NTLocationSearchResult;
-import th.co.gissoft.nostrasdk.Result.NTLocationSearchResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTAutocompleteService;
+import th.co.nostrasdk.Base.NTLocationSearchService;
+import th.co.nostrasdk.Parameter.Constant.NTCountry;
+import th.co.nostrasdk.Parameter.NTAutocompleteParameter;
+import th.co.nostrasdk.Parameter.NTLocationSearchParameter;
+import th.co.nostrasdk.Result.NTAutocompleteResult;
+import th.co.nostrasdk.Result.NTAutocompleteResultSet;
+import th.co.nostrasdk.Result.NTLocationSearchResult;
+import th.co.nostrasdk.Result.NTLocationSearchResultSet;
 
 public class KeywordActivity extends AppCompatActivity {
     private ListView lvAutoSearch;
@@ -86,7 +86,7 @@ public class KeywordActivity extends AppCompatActivity {
                                     + results[i].getAdminLevel2_L() + " "
                                     + results[i].getAdminLevel1_L();
                         }
-                        Intent intent = new Intent(getApplicationContext(), ListResultsActivity.class);
+                        Intent intent = new Intent(KeywordActivity.this, ListResultsActivity.class);
                         intent.putExtra("autoCompleteSearchResults", list2);
                         intent.putExtra("lon", lon);
                         intent.putExtra("lat", lat);
@@ -95,7 +95,7 @@ public class KeywordActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(String errorMessage) {
-                        Toast.makeText(getApplicationContext(),errorMessage,Toast.LENGTH_SHORT).show();
+                        Toast.makeText(KeywordActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -140,7 +140,7 @@ public class KeywordActivity extends AppCompatActivity {
 
                             @Override
                             public void onError(String errorMessage) {
-                                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(KeywordActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                             }
                         });
                     }

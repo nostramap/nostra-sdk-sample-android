@@ -5,7 +5,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -16,7 +15,6 @@ import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnStatusChangedListener;
 import com.esri.android.runtime.ArcGISRuntime;
-import com.esri.core.geometry.CoordinateConversion;
 import com.esri.core.geometry.Envelope;
 import com.esri.core.geometry.GeometryEngine;
 import com.esri.core.geometry.LinearUnit;
@@ -25,11 +23,11 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.core.geometry.Unit;
 import com.esri.core.io.UserCredentials;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
 
 public class PinMarkerActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -77,7 +75,7 @@ public class PinMarkerActivity extends AppCompatActivity implements OnStatusChan
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(PinMarkerActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
         // Send parameter to RouteActivity

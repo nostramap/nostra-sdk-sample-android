@@ -11,13 +11,13 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTAdministrativeService;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTAdministrativeSort;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTCountry;
-import th.co.gissoft.nostrasdk.Parameter.NTAdministrativeParameter;
-import th.co.gissoft.nostrasdk.Result.NTAdministrativeResult;
-import th.co.gissoft.nostrasdk.Result.NTAdministrativeResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTAdministrativeService;
+import th.co.nostrasdk.Parameter.Constant.NTAdministrativeSort;
+import th.co.nostrasdk.Parameter.Constant.NTCountry;
+import th.co.nostrasdk.Parameter.NTAdministrativeParameter;
+import th.co.nostrasdk.Result.NTAdministrativeResult;
+import th.co.nostrasdk.Result.NTAdministrativeResultSet;
 
 public class AdminPolyActivity extends AppCompatActivity {
     private Spinner spnProvince;
@@ -44,12 +44,12 @@ public class AdminPolyActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (arrNameDistrict != null) {
-                    Intent intent = new Intent(getApplicationContext(), ListResultsActivity.class);
+                    Intent intent = new Intent(AdminPolyActivity.this, ListResultsActivity.class);
                     intent.putExtra("codeDistrict", codeDistrict);
                     intent.putExtra("codeProvince", codeProvince);
                     startActivity(intent);
                 } else {
-                    Toast.makeText(getApplicationContext(), "Please wait", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AdminPolyActivity.this, "Please wait", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -105,7 +105,7 @@ public class AdminPolyActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminPolyActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -135,7 +135,7 @@ public class AdminPolyActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminPolyActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }

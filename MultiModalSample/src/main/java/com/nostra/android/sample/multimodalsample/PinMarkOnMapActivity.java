@@ -21,12 +21,12 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.core.geometry.Unit;
 import com.esri.core.io.UserCredentials;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTPoint;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Parameter.Class.NTPoint;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
 
 public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -126,7 +126,7 @@ public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusC
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(),errorMessage,Toast.LENGTH_SHORT).show();
+                Toast.makeText(PinMarkOnMapActivity.this, errorMessage,Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -148,7 +148,7 @@ public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusC
             int fromLocationCode = 1;
             Point pointCenter;
             if(!mapView.isLoaded()){
-                Toast.makeText(getApplicationContext(),"Loading Map",Toast.LENGTH_SHORT).show();
+                Toast.makeText(PinMarkOnMapActivity.this, "Loading Map", Toast.LENGTH_SHORT).show();
             }else  if (getIntent().getExtras().getString("Location").equals("toLocation")) {
                 pointCenter = mapView.getCenter();
                 getIntent().putExtra("CenterX", pointCenter.getX());

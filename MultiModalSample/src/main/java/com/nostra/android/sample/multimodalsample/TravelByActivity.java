@@ -22,7 +22,7 @@ public class TravelByActivity extends AppCompatActivity {
         String[] Travel;
         Travel = new String[]
                 {"AIRPLANE", "BUS", "MRT" , "BTS" , "BRT" , "AIRPORT RAIL LINK" , "RAIL" , "BOAT" , "BMTA"};
-        adapter = new TravelAdapter(getApplicationContext(),Travel);
+        adapter = new TravelAdapter(TravelByActivity.this, Travel);
         lvTravelBy.setAdapter(adapter);
 
         //Send parameter to MainActivity

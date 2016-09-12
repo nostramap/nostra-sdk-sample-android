@@ -33,15 +33,15 @@ import com.esri.core.symbol.PictureMarkerSymbol;
 import java.util.HashMap;
 import java.util.Map;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTIdentifyService;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTPoint;
-import th.co.gissoft.nostrasdk.Parameter.NTIdentifyParameter;
-import th.co.gissoft.nostrasdk.Result.NTIdentifyResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTIdentifyService;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Parameter.Class.NTPoint;
+import th.co.nostrasdk.Parameter.NTIdentifyParameter;
+import th.co.nostrasdk.Result.NTIdentifyResult;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
 
 public class IdentifyActivity extends AppCompatActivity
         implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
@@ -97,45 +97,46 @@ public class IdentifyActivity extends AppCompatActivity
         if (source == mapView && status == OnStatusChangedListener.STATUS.INITIALIZED) {
             LocationDisplayManager locationManager = mapView.getLocationDisplayManager();
             locationManager.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-            locationManager.setLocationListener(new LocationListener() {
-                boolean locationChanged = false;
-
-                // Zooms to the current location when first GPS fix arrives.
-                @Override
-                public void onLocationChanged(Location loc) {
-                    if (!locationChanged) {
-                        locationChanged = true;
-
-                        double locy = loc.getLatitude();
-                        double locx = loc.getLongitude();
-                        Point wgspoint = new Point(locx, locy);
-                        mapPoint = (Point) GeometryEngine.project(wgspoint,SpatialReference.create(4326),
-                                mapView.getSpatialReference());
-
-                        Unit mapUnit = mapView.getSpatialReference().getUnit();
-                        double zoomWidth = Unit.convertUnits(5,
-                                Unit.create(LinearUnit.Code.MILE_US),
-                                mapUnit);
-                        Envelope zoomExtent = new Envelope(mapPoint,zoomWidth, zoomWidth);
-                        mapView.setExtent(zoomExtent);
-                    }
-                }
-
-                @Override
-                public void onProviderDisabled(String arg0) {
-                }
-
-                @Override
-                public void onProviderEnabled(String arg0) {
-                }
-
-                @Override
-                public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-                }
-            });
+            locationManager.setLocationListener(locationListener);
             locationManager.start();
         }
     }
+
+    private LocationListener locationListener = new LocationListener() {
+        boolean locationChanged = false;
+
+        @Override
+        public void onLocationChanged(Location location) {
+            if (!locationChanged) {
+                locationChanged = true;
+
+                double locationY = location.getLatitude();
+                double locationX = location.getLongitude();
+                Point wgsPoint = new Point(locationX, locationY);
+                mapPoint = (Point) GeometryEngine.project(wgsPoint,SpatialReference.create(4326),
+                        mapView.getSpatialReference());
+
+                Unit mapUnit = mapView.getSpatialReference().getUnit();
+                double zoomWidth = Unit.convertUnits(5,
+                        Unit.create(LinearUnit.Code.MILE_US),
+                        mapUnit);
+                Envelope zoomExtent = new Envelope(mapPoint,zoomWidth, zoomWidth);
+                mapView.setExtent(zoomExtent);
+            }
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+        }
+    };
 
     // Add map
     private void initialMap() {
@@ -174,7 +175,7 @@ public class IdentifyActivity extends AppCompatActivity
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(IdentifyActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -195,7 +196,7 @@ public class IdentifyActivity extends AppCompatActivity
                           String adminLevel3L,
                           String adminLevel2L,
                           String adminLevel1L) {
-        View view = LayoutInflater.from(IdentifyActivity.this).inflate( R.layout.callout, null);
+        View view = LayoutInflater.from(IdentifyActivity.this).inflate(R.layout.callout, null);
         final TextView txvNameL = (TextView) view.findViewById(R.id.txvNameL);
         txvNameL.setText(name);
 
@@ -210,7 +211,7 @@ public class IdentifyActivity extends AppCompatActivity
     @Override
     public boolean onLongPress(float x, float y) {
         if (!mapView.isLoaded()) {
-            Toast.makeText(getApplicationContext(), "Map is loading", Toast.LENGTH_SHORT);
+            Toast.makeText(IdentifyActivity.this, "Map is loading", Toast.LENGTH_SHORT);
         } else if (mapView.isLoaded()) {
             graphicsLayerPin.removeAll();
             if (mapCallout != null && mapCallout.isShowing()) {
@@ -222,7 +223,7 @@ public class IdentifyActivity extends AppCompatActivity
                         mapView.getSpatialReference(), 7);
                 final Point wgsPoint = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
                         SpatialReference.create(SpatialReference.WKID_WGS84));
-                PictureMarkerSymbol markerSymbol = new PictureMarkerSymbol(getApplicationContext(),
+                PictureMarkerSymbol markerSymbol = new PictureMarkerSymbol(this,
                         getResources().getDrawable(R.drawable.pin_markonmap));
                 Graphic graphic = new Graphic(point, markerSymbol);
                 final int id = graphicsLayerPin.addGraphic(graphic);
@@ -256,11 +257,11 @@ public class IdentifyActivity extends AppCompatActivity
 
                     @Override
                     public void onError(String s) {
-                        Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(IdentifyActivity.this, s, Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {
-                Toast.makeText(getApplicationContext(),"No Data",Toast.LENGTH_SHORT).show();
+                Toast.makeText(IdentifyActivity.this, "No Data", Toast.LENGTH_SHORT).show();
             }
         }
         return true;
@@ -272,7 +273,7 @@ public class IdentifyActivity extends AppCompatActivity
             mapCallout.hide();
             graphicsLayerPin.removeAll();
         }else {
-            Toast.makeText(getApplicationContext(),"Select location",Toast.LENGTH_SHORT).show();
+            Toast.makeText(IdentifyActivity.this, "Select location", Toast.LENGTH_SHORT).show();
         }
     }
 }

@@ -9,14 +9,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTCategoryService;
-import th.co.gissoft.nostrasdk.Base.NTLocationSearchService;
-import th.co.gissoft.nostrasdk.Parameter.NTLocationSearchParameter;
-import th.co.gissoft.nostrasdk.Result.NTCategoryResult;
-import th.co.gissoft.nostrasdk.Result.NTCategoryResultSet;
-import th.co.gissoft.nostrasdk.Result.NTLocationSearchResult;
-import th.co.gissoft.nostrasdk.Result.NTLocationSearchResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTCategoryService;
+import th.co.nostrasdk.Base.NTLocationSearchService;
+import th.co.nostrasdk.Parameter.NTLocationSearchParameter;
+import th.co.nostrasdk.Result.NTCategoryResult;
+import th.co.nostrasdk.Result.NTCategoryResultSet;
+import th.co.nostrasdk.Result.NTLocationSearchResult;
+import th.co.nostrasdk.Result.NTLocationSearchResultSet;
 
 public class CategoriesActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
     private ListView lvLocation;
@@ -58,7 +58,7 @@ public class CategoriesActivity extends AppCompatActivity implements AdapterView
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(CategoriesActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }

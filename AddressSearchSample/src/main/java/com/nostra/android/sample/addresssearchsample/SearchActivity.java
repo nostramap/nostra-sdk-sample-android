@@ -13,6 +13,7 @@ public class SearchActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
+
         TabHost tabHostSearch;
         tabHostSearch = (TabHost)findViewById(R.id.tabhostSearch);
         localActivityManager = new LocalActivityManager(this, false);

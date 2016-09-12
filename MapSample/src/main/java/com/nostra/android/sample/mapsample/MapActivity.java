@@ -24,17 +24,16 @@ import com.esri.core.geometry.Point;
 import com.esri.core.io.UserCredentials;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTPoint;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTLayerType;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTMapServiceType;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Parameter.Class.NTPoint;
+import th.co.nostrasdk.Parameter.Constant.NTLayerType;
+import th.co.nostrasdk.Parameter.Constant.NTMapServiceType;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
 
 public class MapActivity extends AppCompatActivity {
     private ListView lvBaseMap;
@@ -77,7 +76,7 @@ public class MapActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MapActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
         drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);

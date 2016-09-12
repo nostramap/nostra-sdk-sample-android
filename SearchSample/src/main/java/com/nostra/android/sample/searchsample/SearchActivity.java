@@ -23,12 +23,12 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.core.geometry.Unit;
 import com.esri.core.io.UserCredentials;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTPoint;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Parameter.Class.NTPoint;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
 
 public class SearchActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -74,7 +74,7 @@ public class SearchActivity extends AppCompatActivity implements OnStatusChanged
         imvSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), TabHostActivity.class);
+                Intent intent = new Intent(SearchActivity.this, TabHostActivity.class);
                 intent.putExtra("lon", lon);
                 intent.putExtra("lat", lat);
                 startActivity(intent);
@@ -111,7 +111,7 @@ public class SearchActivity extends AppCompatActivity implements OnStatusChanged
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(SearchActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }

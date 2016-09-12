@@ -35,21 +35,21 @@ import com.esri.core.io.UserCredentials;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.PictureMarkerSymbol;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTDynamicContentListService;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Base.NTShortLinkService;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTLanguage;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTMapType;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTShortLinkType;
-import th.co.gissoft.nostrasdk.Parameter.NTShortLinkParameter;
-import th.co.gissoft.nostrasdk.Result.NTDynamicContentListResult;
-import th.co.gissoft.nostrasdk.Result.NTDynamicContentListResultSet;
-import th.co.gissoft.nostrasdk.Result.NTDynamicContentResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.gissoft.nostrasdk.Result.NTShortLinkResult;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTDynamicContentListService;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Base.NTShortLinkService;
+import th.co.nostrasdk.Parameter.Constant.NTLanguage;
+import th.co.nostrasdk.Parameter.Constant.NTMapType;
+import th.co.nostrasdk.Parameter.Constant.NTShortLinkType;
+import th.co.nostrasdk.Parameter.NTShortLinkParameter;
+import th.co.nostrasdk.Result.NTDynamicContentListResult;
+import th.co.nostrasdk.Result.NTDynamicContentListResultSet;
+import th.co.nostrasdk.Result.NTDynamicContentResult;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Result.NTShortLinkResult;
 
 public class DynamicContentActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -82,7 +82,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         // Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
-        manager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
+        manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         mapView = (MapView) findViewById(R.id.mapView);
         rcvLayer = (RecyclerView) findViewById(R.id.rcvLayer);
@@ -188,7 +188,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(DynamicContentActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
         mapView.setOnStatusChangedListener(this);
@@ -255,8 +255,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         txvHeader.setText("DISPLAY ON MAP");
 
         Point p = GeometryEngine.project(dmcResult.getLongitude(), dmcResult.getLatitude(), outSR);
-        PictureMarkerSymbol pin = new PictureMarkerSymbol(getApplicationContext().getResources()
-                .getDrawable(R.drawable.pin_markonmap));
+        PictureMarkerSymbol pin = new PictureMarkerSymbol(getResources().getDrawable(R.drawable.pin_markonmap));
 
         mGraphicsLayer.addGraphic(new Graphic(p, pin));
         mapView.zoomTo(p, 11);
@@ -271,7 +270,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         param.setLinkType(NTShortLinkType.SEARCH);
         param.setLanguage(NTLanguage.LOCAL);
         param.setLevel(11);
-        param.setMap(NTMapType.STREET_MAP);
+        param.setMapType(NTMapType.STREET_MAP);
 
         // Call share service and show the url
         NTShortLinkService.executeAsync(param, new IServiceRequestListener<NTShortLinkResult>() {
@@ -282,7 +281,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(DynamicContentActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }

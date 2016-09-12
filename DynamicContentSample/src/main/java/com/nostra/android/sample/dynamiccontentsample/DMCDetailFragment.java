@@ -17,8 +17,7 @@ import android.widget.TextView;
 
 import java.net.URL;
 
-import th.co.gissoft.nostrasdk.Result.NTDynamicContentResult;
-
+import th.co.nostrasdk.Result.NTDynamicContentResult;
 
 public class DMCDetailFragment extends Fragment {
     private static final String DMC_RESULT = "DMC_RESULT";
@@ -118,7 +117,6 @@ public class DMCDetailFragment extends Fragment {
                 }
             }
         });
-
         return layoutView;
     }
 

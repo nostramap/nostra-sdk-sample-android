@@ -43,18 +43,17 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTMultiModalTransportService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTLocation;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTMultiModalDirection;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTLanguage;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTMultiModalTransportMode;
-import th.co.gissoft.nostrasdk.Parameter.NTMultiModalTransportParameter;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.gissoft.nostrasdk.Result.NTMultiModalResult;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTMultiModalTransportService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Parameter.Class.NTLocation;
+import th.co.nostrasdk.Parameter.Class.NTMultiModalDirection;
+import th.co.nostrasdk.Parameter.Constant.NTMultiModalTransportMode;
+import th.co.nostrasdk.Parameter.NTMultiModalTransportParameter;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Result.NTMultiModalTransportResult;
 
 public class MainActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -125,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         txvTravelBy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), TravelByActivity.class);
+                Intent intent = new Intent(MainActivity.this, TravelByActivity.class);
                 startActivityForResult(intent, travelCode);
             }
         });
@@ -157,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -187,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-                    Intent intent = new Intent(getApplicationContext(), PinMarkOnMapActivity.class);
+                    Intent intent = new Intent(MainActivity.this, PinMarkOnMapActivity.class);
                     intent.putExtra("Location", "toLocation");
                     startActivityForResult(intent, toLocation);
                 }
@@ -233,13 +232,13 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                 Toast.makeText(getApplication(), "Please select Location", Toast.LENGTH_SHORT).show();
 
             } else if (toLocationCenterX != 0 && toLocationCenterY != 0 && fromLocationCenterY == 0 && fromLocationCenterX == 0) {
-                Toast.makeText(getApplicationContext(), "Select fromLocation", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Select fromLocation", Toast.LENGTH_SHORT).show();
 
             } else if (toLocationCenterX == 0 && toLocationCenterY == 0 && fromLocationCenterY != 0 && fromLocationCenterX != 0) {
-                Toast.makeText(getApplicationContext(), "Select toLocation", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Select toLocation", Toast.LENGTH_SHORT).show();
 
             } else if (resultTravel == null) {
-                Toast.makeText(getApplicationContext(), "Select Travel", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Select Travel", Toast.LENGTH_SHORT).show();
             } else if (toLocationCenterX != 0 && toLocationCenterY != 0 & fromLocationCenterX != 0 &&
                     fromLocationCenterY != 0 && resultTravel.size() != 0) {
                 pointToLocation = new Point(toLocationCenterX, toLocationCenterY);
@@ -295,9 +294,9 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                 }
 
                 NTMultiModalTransportParameter param = new NTMultiModalTransportParameter(stops, mode);
-                NTMultiModalTransportService.executeAsync(param, new IServiceRequestListener<NTMultiModalResult>() {
+                NTMultiModalTransportService.executeAsync(param, new IServiceRequestListener<NTMultiModalTransportResult>() {
                     @Override
-                    public void onResponse(NTMultiModalResult result, String responseCode) {
+                    public void onResponse(NTMultiModalTransportResult result, String responseCode) {
                         try {
                             directions = result.getMinute().getDirections();
                             pinGraphicToLocation.removeAll();
@@ -322,14 +321,14 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                                 Graphic pointGraphic = new Graphic(point, SymbolCircle);
                                 SymbolCircleGraphicsLayer.addGraphic(pointGraphic);
                             }
-                            PictureMarkerSymbol pinFinish = new PictureMarkerSymbol(getApplicationContext(),
+                            PictureMarkerSymbol pinFinish = new PictureMarkerSymbol(MainActivity.this,
                                     getResources().getDrawable(R.drawable.flag));
                             List<double[]> Path = directions[0].getPath();
                             double[] firstPoint = Path.get(0);
                             Point point = GeometryEngine.project(firstPoint[0], firstPoint[1], OUTPUT_SR);
                             Graphic graphicPintoLocation = new Graphic(point, pinFinish);
 
-                            PictureMarkerSymbol pinStart = new PictureMarkerSymbol(getApplicationContext(),
+                            PictureMarkerSymbol pinStart = new PictureMarkerSymbol(MainActivity.this,
                                     getResources().getDrawable(R.drawable.flag_des));
                             List<double[]> Path2 = directions[directions.length - 1].getPath();
                             double[] lastPoint = Path2.get(Path2.size() - 1);
@@ -361,7 +360,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         @Override
         public void onClick(View v) {
             if (directions == null) {
-                Toast.makeText(getApplicationContext(), "No direction", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "No direction", Toast.LENGTH_SHORT).show();
             } else {
                 directionResults = new String[directions.length];
                 arrDistanceAndTime = new String[directions.length];
@@ -390,7 +389,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                     }
                 }
             }
-            Intent intent = new Intent(getApplicationContext(), ResultsDirectionActivity.class);
+            Intent intent = new Intent(MainActivity.this, ResultsDirectionActivity.class);
             intent.putExtra("directions", directionResults);
             intent.putExtra("type", type);
             intent.putExtra("distance_time", arrDistanceAndTime);
@@ -403,25 +402,25 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         pinGraphicToLocation.removeAll();
         if (toLocationCenterX != 0 && toLocationCenterY != 0) {
             pointToLocation = new Point(toLocationCenterX, toLocationCenterY);
-            PictureMarkerSymbol pinMarkToLocation = new PictureMarkerSymbol(getApplicationContext(),
+            PictureMarkerSymbol pinMarkToLocation = new PictureMarkerSymbol(MainActivity.this,
                     getResources().getDrawable(R.drawable.flag));
             Graphic graphic = new Graphic(pointToLocation, pinMarkToLocation);
             pinGraphicToLocation.addGraphic(graphic);
             mapView.addLayer(pinGraphicToLocation);
         } else {
-            Toast.makeText(getApplicationContext(), "Select Tolocation", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Select start.", Toast.LENGTH_SHORT).show();
         }
 
         pinGraphicFromLocation.removeAll();
         if (fromLocationCenterX != 0 && fromLocationCenterY != 0) {
             pointFromLocation = new Point(fromLocationCenterX, fromLocationCenterY);
-            PictureMarkerSymbol pinMarkToLocation = new PictureMarkerSymbol(getApplicationContext(),
+            PictureMarkerSymbol pinMarkToLocation = new PictureMarkerSymbol(MainActivity.this,
                     getResources().getDrawable(R.drawable.flag_des));
             Graphic graphic = new Graphic(pointFromLocation, pinMarkToLocation);
             pinGraphicFromLocation.addGraphic(graphic);
             mapView.addLayer(pinGraphicFromLocation);
         } else {
-            Toast.makeText(getApplicationContext(), "Select fromLocation", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Select destination.", Toast.LENGTH_SHORT).show();
         }
     }
 

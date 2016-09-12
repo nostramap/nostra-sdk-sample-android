@@ -33,8 +33,8 @@ public class ResultsDirectionActivity extends AppCompatActivity {
 
         ListView lvDirection;
         lvDirection = (ListView)findViewById(R.id.lvDirections);
-        ResultDirectionAdapter adapter = new ResultDirectionAdapter(getApplicationContext(),
-                arrDirectionResult,type,arrDistanceAndTime);
+        ResultDirectionAdapter adapter = new ResultDirectionAdapter(this,
+                arrDirectionResult, type, arrDistanceAndTime);
         lvDirection.setAdapter(adapter);
 
         ImageView imvBack;

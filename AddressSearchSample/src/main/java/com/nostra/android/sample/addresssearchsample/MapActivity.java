@@ -36,12 +36,12 @@ import com.esri.core.symbol.PictureMarkerSymbol;
 import java.util.HashMap;
 import java.util.Map;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTPoint;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Parameter.Class.NTPoint;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
 
 public class MapActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -96,7 +96,7 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
         imvSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                Intent intent = new Intent(MapActivity.this, SearchActivity.class);
                 startActivity(intent);
             }
         });
@@ -105,7 +105,7 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
         edtSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                Intent intent = new Intent(MapActivity.this, SearchActivity.class);
                 startActivity(intent);
             }
 
@@ -160,7 +160,7 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MapActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }

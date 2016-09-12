@@ -6,10 +6,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TabHost;
 
-import com.esri.android.runtime.ArcGISRuntime;
-
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-
 public class TabHostActivity extends AppCompatActivity {
     private LocalActivityManager localActivityManager;
 

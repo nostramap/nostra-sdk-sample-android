@@ -31,15 +31,15 @@ import com.esri.core.io.UserCredentials;
 
 import java.util.Locale;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Base.NTWeatherService;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTWeather;
-import th.co.gissoft.nostrasdk.Parameter.NTWeatherParameter;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.gissoft.nostrasdk.Result.NTWeatherResult;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Base.NTWeatherService;
+import th.co.nostrasdk.Parameter.Class.NTWeather;
+import th.co.nostrasdk.Parameter.NTWeatherParameter;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Result.NTWeatherResult;
 
 public class WeatherActivity extends AppCompatActivity
         implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
@@ -118,7 +118,7 @@ public class WeatherActivity extends AppCompatActivity
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(WeatherActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
         // Current Location
@@ -244,7 +244,7 @@ public class WeatherActivity extends AppCompatActivity
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             }
         } else {
-            Toast.makeText(getApplicationContext(), "Map Loading", Toast.LENGTH_SHORT).show();
+            Toast.makeText(WeatherActivity.this, "Map Loading", Toast.LENGTH_SHORT).show();
         }
     }
 

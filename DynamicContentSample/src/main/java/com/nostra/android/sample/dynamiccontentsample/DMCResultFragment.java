@@ -10,12 +10,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTDynamicContentService;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTDynamicContentSort;
-import th.co.gissoft.nostrasdk.Parameter.NTDynamicContentParameter;
-import th.co.gissoft.nostrasdk.Result.NTDynamicContentResult;
-import th.co.gissoft.nostrasdk.Result.NTDynamicContentResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTDynamicContentService;
+import th.co.nostrasdk.Parameter.Constant.NTDynamicContentSort;
+import th.co.nostrasdk.Parameter.NTDynamicContentParameter;
+import th.co.nostrasdk.Result.NTDynamicContentResult;
+import th.co.nostrasdk.Result.NTDynamicContentResultSet;
 
 public class DMCResultFragment extends Fragment {
     private static final String LAYER_ID = "LAYER_ID";
@@ -66,8 +66,10 @@ public class DMCResultFragment extends Fragment {
         // Setting parameter
         final int pageNumber = 1;
         final int numberOfReturn = 5;
-        NTDynamicContentParameter parameter = new NTDynamicContentParameter(layerID, lat, lon,
-                NTDynamicContentSort.NAME_ASC, numberOfReturn, pageNumber);
+        NTDynamicContentParameter parameter = new NTDynamicContentParameter(layerID, lat, lon);
+        parameter.setSortBy(NTDynamicContentSort.NAME_ASC);
+        parameter.setNumReturn(numberOfReturn);
+        parameter.setPage(pageNumber);
         parameter.setRadius(2000);
 
         // Call service

@@ -21,11 +21,11 @@ import com.esri.core.io.UserCredentials;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.PictureMarkerSymbol;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
 
 public class PinMarkerActivity extends AppCompatActivity {
     private MapView mapView;
@@ -85,7 +85,7 @@ public class PinMarkerActivity extends AppCompatActivity {
                             SpatialReference.create(SpatialReference.WKID_WGS84), 7);
                     point = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
                             SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE));
-                    PictureMarkerSymbol markerSymbol = new PictureMarkerSymbol(getApplicationContext(),
+                    PictureMarkerSymbol markerSymbol = new PictureMarkerSymbol(PinMarkerActivity.this,
                             getResources().getDrawable(R.drawable.pin_markonmap));
                     Graphic graphicPin = new Graphic(point, markerSymbol);
                     graphicsLayerPin.addGraphic(graphicPin);
@@ -95,7 +95,7 @@ public class PinMarkerActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(PinMarkerActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
 

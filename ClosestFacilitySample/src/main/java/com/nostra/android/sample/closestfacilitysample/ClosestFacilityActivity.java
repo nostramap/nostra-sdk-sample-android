@@ -40,22 +40,22 @@ import org.codehaus.jackson.JsonParser;
 
 import java.io.IOException;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTClosestFacilityService;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTLocation;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTSpatialReference;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTCountry;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTFacilityDirection;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTImpedanceMode;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTLanguage;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTTravelMode;
-import th.co.gissoft.nostrasdk.Parameter.NTClosestFacilityParameter;
-import th.co.gissoft.nostrasdk.Result.NTClosestFacilityResult;
-import th.co.gissoft.nostrasdk.Result.NTClosestFacilityResultSet;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTClosestFacilityService;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Parameter.Class.NTLocation;
+import th.co.nostrasdk.Parameter.Class.NTSpatialReference;
+import th.co.nostrasdk.Parameter.Constant.NTCountry;
+import th.co.nostrasdk.Parameter.Constant.NTFacilityDirection;
+import th.co.nostrasdk.Parameter.Constant.NTImpedanceMode;
+import th.co.nostrasdk.Parameter.Constant.NTLanguage;
+import th.co.nostrasdk.Parameter.Constant.NTTravelMode;
+import th.co.nostrasdk.Parameter.NTClosestFacilityParameter;
+import th.co.nostrasdk.Result.NTClosestFacilityResult;
+import th.co.nostrasdk.Result.NTClosestFacilityResultSet;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
 
 public class ClosestFacilityActivity extends AppCompatActivity
         implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
@@ -159,7 +159,7 @@ public class ClosestFacilityActivity extends AppCompatActivity
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(ClosestFacilityActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
         mapView.setOnStatusChangedListener(this);
@@ -231,7 +231,7 @@ public class ClosestFacilityActivity extends AppCompatActivity
             @Override
             public void onError(String errorMessage) {
                 // If error
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(ClosestFacilityActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }

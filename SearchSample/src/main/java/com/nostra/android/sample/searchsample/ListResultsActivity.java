@@ -49,7 +49,7 @@ public class ListResultsActivity extends AppCompatActivity {
         lvLocation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getApplicationContext(), PinMarkerActivity.class);
+                Intent intent = new Intent(ListResultsActivity.this, PinMarkerActivity.class);
                 final String[] results = getIntent().getStringArrayExtra("addressSearchResults");
                 String answer = results[position];
                 intent.putExtra("listResults", answer);
@@ -68,7 +68,7 @@ public class ListResultsActivity extends AppCompatActivity {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getApplicationContext(), PinMarkerActivity.class);
+                Intent intent = new Intent(ListResultsActivity.this, PinMarkerActivity.class);
                 String answer = addressResult[position];
                 intent.putExtra("listResults", answer);
                 intent.putExtra("lat", lat);

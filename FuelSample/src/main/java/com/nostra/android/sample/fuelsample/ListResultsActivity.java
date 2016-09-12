@@ -10,19 +10,20 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTFuelService;
-import th.co.gissoft.nostrasdk.Parameter.NTFuelParameter;
-import th.co.gissoft.nostrasdk.Result.NTFuelResult;
-import th.co.gissoft.nostrasdk.Result.NTFuelResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTFuelService;
+import th.co.nostrasdk.Parameter.NTFuelParameter;
+import th.co.nostrasdk.Result.NTFuelResult;
+import th.co.nostrasdk.Result.NTFuelResultSet;
 
 public class ListResultsActivity extends AppCompatActivity {
     private double getX = 0;
     private double getY = 0;
     private String codeProvince;
     private String codeDistrict;
+    private NTFuelResult[] results;
 
-    private ImageButton imbBack;
+    private ImageButton btnBack;
     private ListView lvFuel;
 
     @Override
@@ -31,8 +32,8 @@ public class ListResultsActivity extends AppCompatActivity {
         setContentView(R.layout.listview_fuel);
 
         lvFuel = (ListView) findViewById(R.id.lvFuel);
-        imbBack = (ImageButton) findViewById(R.id.imbBack);
-        imbBack.setOnClickListener(new View.OnClickListener() {
+        btnBack = (ImageButton) findViewById(R.id.imbBack);
+        btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onBackPressed();
@@ -46,98 +47,77 @@ public class ListResultsActivity extends AppCompatActivity {
         codeDistrict = data.getString("codeDistrict", "");
         codeProvince = data.getString("codeProvince", "");
 
-        // Display fuel price
-        displayFuelTable();
+        if (getX != 0 && getY != 0) {
+            displayFuelByCoordinate();
+        } else {
+            displayFuelByAdminCode();
+        }
     }
 
-    //Call NTFuelService and set adapter in listview
-    private void displayFuelTable() {
-        if (getX != 0 && getY != 0) {
-            NTFuelParameter fuelParameter = new NTFuelParameter(getY, getX);
-            NTFuelService.executeAsync(fuelParameter, new IServiceRequestListener<NTFuelResultSet>() {
-                @Override
-                public void onResponse(final NTFuelResultSet result, String responseCode) {
-                    NTFuelResult[] results = result.getResults();
-                    final String[] fuelResults = new String[results.length];
-                    for (int i = 0; i < results.length; i++) {
-                        fuelResults[i] = results[i].getBrandName_L();
-                    }
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(ListResultsActivity.this,
-                            R.layout.row_fuel, R.id.txv_results, fuelResults);
-                    lvFuel.setAdapter(adapter);
-                    lvFuel.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            NTFuelResult[] results = result.getResults();
-                            for (int i = 0; i < results.length; i++) {
-                                if (position == i) {
-                                    Intent intent = new Intent(getApplicationContext(), PriceFuelActivity.class);
-                                    intent.putExtra("nameBrandL", results[i].getBrandName_L());
-                                    intent.putExtra("diesel", results[i].getDiesel());
-                                    intent.putExtra("dieselPremium", results[i].getDieselPremium());
-                                    intent.putExtra("gasohol91", results[i].getGasohol91());
-                                    intent.putExtra("gasohol95", results[i].getGasohol95());
-                                    intent.putExtra("gasoholE20", results[i].getGasoholE20());
-                                    intent.putExtra("gasoholE85", results[i].getGasoholE85());
-                                    intent.putExtra("gasoline91", results[i].getGasoline91());
-                                    intent.putExtra("gasoline95", results[i].getGasoline95());
-                                    intent.putExtra("ngv", results[i].getNgv());
-                                    startActivity(intent);
-                                }
-                            }
-                        }
-                    });
+    private void displayFuelByCoordinate() {
+        NTFuelParameter fuelParameter = new NTFuelParameter(getY, getX);
+        NTFuelService.executeAsync(fuelParameter, new IServiceRequestListener<NTFuelResultSet>() {
+            @Override
+            public void onResponse(final NTFuelResultSet result, String responseCode) {
+                results = result.getResults();
+                final String[] fuelResults = new String[results.length];
+                for (int i = 0; i < results.length; i++) {
+                    fuelResults[i] = results[i].getBrandName_L();
                 }
+                bindFuelResult(fuelResults);
+            }
 
-                @Override
-                public void onError(String errorMessage) {
-                    Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
-                }
-            });
-        } else {
-            NTFuelParameter fuelParameter = new NTFuelParameter(codeProvince.trim(), codeDistrict.trim());
-            NTFuelService.executeAsync(fuelParameter, new IServiceRequestListener<NTFuelResultSet>() {
-                @Override
-                public void onResponse(final NTFuelResultSet result, String responseCode) {
-                    NTFuelResult[] results = result.getResults();
-                    String[] fuelResults = new String[results.length];
-                    for (int i = 0; i < results.length; i++) {
-                        fuelResults[i] = results[i].getBrandName_L();
-                        String brandNameL = results[i].getBrandName_L();
-                        fuelResults[i] = brandNameL;
-                    }
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(ListResultsActivity.this,
-                            R.layout.row_fuel, R.id.txv_results, fuelResults);
-                    lvFuel.setAdapter(adapter);
-                    lvFuel.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            NTFuelResult[] results = result.getResults();
-                            for (int i = 0; i < results.length; i++) {
-                                if (position == i) {
-                                    Intent intent = new Intent(getApplicationContext(), PriceFuelActivity.class);
-                                    intent.putExtra("nameBrandL", results[i].getBrandName_L());
-                                    intent.putExtra("diesel", results[i].getDiesel());
-                                    intent.putExtra("dieselPremium", results[i].getDieselPremium());
-                                    intent.putExtra("gasohol91", results[i].getGasohol91());
-                                    intent.putExtra("gasohol95", results[i].getGasohol95());
-                                    intent.putExtra("gasoholE20", results[i].getGasoholE20());
-                                    intent.putExtra("gasoholE85", results[i].getGasoholE85());
-                                    intent.putExtra("gasoline91", results[i].getGasoline91());
-                                    intent.putExtra("gasoline95", results[i].getGasoline95());
-                                    intent.putExtra("ngv", results[i].getNgv());
-                                    startActivity(intent);
-                                }
-                            }
-                        }
-                    });
-                }
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(ListResultsActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
-                @Override
-                public void onError(String errorMessage) {
-                    Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+    private void displayFuelByAdminCode() {
+        NTFuelParameter fuelParameter = new NTFuelParameter(codeProvince.trim(), codeDistrict.trim());
+        NTFuelService.executeAsync(fuelParameter, new IServiceRequestListener<NTFuelResultSet>() {
+            @Override
+            public void onResponse(final NTFuelResultSet result, String responseCode) {
+                results = result.getResults();
+                final String[] fuelResults = new String[results.length];
+                for (int i = 0; i < results.length; i++) {
+                    fuelResults[i] = results[i].getBrandName_L();
                 }
-            });
-        }
+                bindFuelResult(fuelResults);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(ListResultsActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void bindFuelResult(String[] fuelResults) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(ListResultsActivity.this,
+                R.layout.row_fuel, R.id.txv_results, fuelResults);
+        lvFuel.setAdapter(adapter);
+        lvFuel.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                for (int i = 0; i < results.length; i++) {
+                    if (position == i) {
+                        Intent intent = new Intent(ListResultsActivity.this, PriceFuelActivity.class);
+                        intent.putExtra("nameBrandL", results[i].getBrandName_L());
+                        intent.putExtra("diesel", results[i].getDiesel());
+                        intent.putExtra("dieselPremium", results[i].getDieselPremium());
+                        intent.putExtra("gasohol91", results[i].getGasohol91());
+                        intent.putExtra("gasohol95", results[i].getGasohol95());
+                        intent.putExtra("gasoholE20", results[i].getGasoholE20());
+                        intent.putExtra("gasoholE85", results[i].getGasoholE85());
+                        intent.putExtra("gasoline91", results[i].getGasoline91());
+                        intent.putExtra("gasoline95", results[i].getGasoline95());
+                        intent.putExtra("ngv", results[i].getNgv());
+                        startActivity(intent);
+                    }
+                }
+            }
+        });
     }
 }

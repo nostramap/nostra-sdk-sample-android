@@ -13,14 +13,8 @@ import android.widget.TextView;
 
 import java.net.URL;
 
-import th.co.gissoft.nostrasdk.Result.NTDynamicContentResult;
+import th.co.nostrasdk.Result.NTDynamicContentResult;
 
-/**
- * Adapter for show result
- *
- * @author Tirawat Jaktremongkhon
- * @version 05/06/16
- */
 class DMCResultAdapter extends RecyclerView.Adapter<DMCResultAdapter.ResultViewHolder> {
     private NTDynamicContentResult[] dmcResults;
     private OnItemClickListener listener;

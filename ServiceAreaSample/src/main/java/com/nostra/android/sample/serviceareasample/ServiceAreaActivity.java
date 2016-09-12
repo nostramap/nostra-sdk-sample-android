@@ -35,20 +35,20 @@ import com.esri.core.symbol.Symbol;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Base.NTServiceAreaService;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTLocation;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTCountry;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTImpedanceMode;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTLanguage;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTTravelMode;
-import th.co.gissoft.nostrasdk.Parameter.NTServiceAreaParameter;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.gissoft.nostrasdk.Result.NTServiceAreaResult;
-import th.co.gissoft.nostrasdk.Result.NTServiceAreaResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Base.NTServiceAreaService;
+import th.co.nostrasdk.Parameter.Class.NTLocation;
+import th.co.nostrasdk.Parameter.Constant.NTCountry;
+import th.co.nostrasdk.Parameter.Constant.NTImpedanceMode;
+import th.co.nostrasdk.Parameter.Constant.NTLanguage;
+import th.co.nostrasdk.Parameter.Constant.NTTravelMode;
+import th.co.nostrasdk.Parameter.NTServiceAreaParameter;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Result.NTServiceAreaResult;
+import th.co.nostrasdk.Result.NTServiceAreaResultSet;
 
 public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTapListener, OnLongPressListener {
     private MapView mapView;
@@ -92,7 +92,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
             @Override
             public void onClick(View v) {
                 rllPinOption.setVisibility(View.GONE);
-                callService();
+                requestServiceArea();
             }
         });
 
@@ -120,7 +120,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
             }
         });
 
-        manager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
+        manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                 manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             LocationDisplayManager ldm = mapView.getLocationDisplayManager();
@@ -194,7 +194,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(ServiceAreaActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
         mapView.setOnSingleTapListener(this);
@@ -211,7 +211,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
         return null;
     }
 
-    private void callService() {
+    private void requestServiceArea() {
         Point pin = (Point) mGraphicsLayer.getGraphic(pinId).getGeometry();
         pin = (Point) GeometryEngine.project(pin, outSR, inSR); // Convert to WGS84
 
@@ -264,7 +264,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
                         e.printStackTrace();
                     }
                 } else {
-                    Toast.makeText(getApplicationContext(), "No service area", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ServiceAreaActivity.this, "No service area", Toast.LENGTH_SHORT).show();
                     if (pinOnMap) {
                         mGraphicsLayer.removeGraphic(pinId);
                         pinOnMap = false;
@@ -274,7 +274,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(ServiceAreaActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -311,8 +311,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
 
         // Draw pin on map
         Point point = mapView.toMapPoint(x, y);
-        PictureMarkerSymbol pin = new PictureMarkerSymbol(
-                getApplicationContext().getResources().getDrawable(R.drawable.pin_markonmap));
+        PictureMarkerSymbol pin = new PictureMarkerSymbol(getResources().getDrawable(R.drawable.pin_markonmap));
         pinId = mGraphicsLayer.addGraphic(new Graphic(point, pin));
         pinOnMap = true;
 
@@ -327,7 +326,6 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
             mGraphicsLayer.removeGraphic(pinId);
             pinOnMap = false;
         }
-
         // clear the service area
         saLayer.removeAll();
 

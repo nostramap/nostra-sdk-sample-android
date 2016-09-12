@@ -45,21 +45,21 @@ import org.codehaus.jackson.JsonParser;
 
 import java.util.Locale;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTRouteService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTDirection;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTFacilityGeometry;
-import th.co.gissoft.nostrasdk.Parameter.Class.NTLocation;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTCountry;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTImpedanceMode;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTLanguage;
-import th.co.gissoft.nostrasdk.Parameter.Constant.NTTravelMode;
-import th.co.gissoft.nostrasdk.Parameter.NTRouteParameter;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.gissoft.nostrasdk.Result.NTRouteResult;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Base.NTRouteService;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Parameter.Class.NTDirection;
+import th.co.nostrasdk.Parameter.Class.NTLocation;
+import th.co.nostrasdk.Parameter.Class.NTPoint;
+import th.co.nostrasdk.Parameter.Constant.NTCountry;
+import th.co.nostrasdk.Parameter.Constant.NTImpedanceMode;
+import th.co.nostrasdk.Parameter.Constant.NTLanguage;
+import th.co.nostrasdk.Parameter.Constant.NTTravelMode;
+import th.co.nostrasdk.Parameter.NTRouteParameter;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Result.NTRouteResult;
 
 public class RouteActivity extends AppCompatActivity implements OnStatusChangedListener {
 
@@ -321,7 +321,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
 
                             Point point = null;
                             for (NTDirection direction : ntRouteResult.getDirections()) {
-                                NTFacilityGeometry facilityGeometry = direction.getPoint();
+                                NTPoint facilityGeometry = direction.getPoint();
                                 point = new Point(facilityGeometry.getX(), facilityGeometry.getY());
 
                                 point = (Point) GeometryEngine.project(point,

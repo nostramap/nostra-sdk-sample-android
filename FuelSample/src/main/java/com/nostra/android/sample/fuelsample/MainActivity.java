@@ -8,7 +8,7 @@ import android.widget.TabHost;
 
 import com.esri.android.runtime.ArcGISRuntime;
 
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.Base.NTSDKEnvironment;
 
 public class MainActivity extends AppCompatActivity {
 

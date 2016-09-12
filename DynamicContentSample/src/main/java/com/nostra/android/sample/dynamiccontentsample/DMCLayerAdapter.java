@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import th.co.gissoft.nostrasdk.Result.NTDynamicContentListResult;
+import th.co.nostrasdk.Result.NTDynamicContentListResult;
 
 /**
  * Adapter for DMC layer list

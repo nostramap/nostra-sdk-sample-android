@@ -22,11 +22,10 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.core.geometry.Unit;
 import com.esri.core.io.UserCredentials;
 
-import th.co.gissoft.nostrasdk.Base.IServiceRequestListener;
-import th.co.gissoft.nostrasdk.Base.NTMapPermissionService;
-import th.co.gissoft.nostrasdk.Base.NTSDKEnvironment;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResult;
-import th.co.gissoft.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.Base.IServiceRequestListener;
+import th.co.nostrasdk.Base.NTMapPermissionService;
+import th.co.nostrasdk.Result.NTMapPermissionResult;
+import th.co.nostrasdk.Result.NTMapPermissionResultSet;
 
 public class MarkOnMapActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -53,7 +52,7 @@ public class MarkOnMapActivity extends AppCompatActivity implements OnStatusChan
                 final Point newPoint = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
                         SpatialReference.create(SpatialReference.WKID_WGS84));
 
-                Intent intent = new Intent(getApplicationContext(), ListResultsActivity.class);
+                Intent intent = new Intent(MarkOnMapActivity.this, ListResultsActivity.class);
                 intent.putExtra("x", newPoint.getX());
                 intent.putExtra("y", newPoint.getY());
                 startActivity(intent);
@@ -88,7 +87,7 @@ public class MarkOnMapActivity extends AppCompatActivity implements OnStatusChan
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MarkOnMapActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }
