@@ -1,11 +1,13 @@
 package com.nostra.android.sample.identifysample;
 
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,7 +71,7 @@ public class IdentifyActivity extends AppCompatActivity
         mapView.setOnLongPressListener(this);
         mapView.setOnSingleTapListener(this);
 
-        //Zoom to current location
+        // Zoom to current location
         ImageView imvCurrentLocation = (ImageView) findViewById(R.id.imvCurrentLocation);
         imvCurrentLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -117,9 +119,7 @@ public class IdentifyActivity extends AppCompatActivity
                         mapView.getSpatialReference());
 
                 Unit mapUnit = mapView.getSpatialReference().getUnit();
-                double zoomWidth = Unit.convertUnits(5,
-                        Unit.create(LinearUnit.Code.MILE_US),
-                        mapUnit);
+                double zoomWidth = Unit.convertUnits(5, Unit.create(LinearUnit.Code.MILE_US), mapUnit);
                 Envelope zoomExtent = new Envelope(mapPoint,zoomWidth, zoomWidth);
                 mapView.setExtent(zoomExtent);
             }
@@ -148,7 +148,7 @@ public class IdentifyActivity extends AppCompatActivity
                 if (map != null) {
                     String url = map.getServiceUrl_L();
                     String token = map.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    String referrer = "referrer";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -192,19 +192,31 @@ public class IdentifyActivity extends AppCompatActivity
 
     //Set content in callout
     private View loadView(String name,
+                          final String nostraId,
                           String adminLevel4L,
                           String adminLevel3L,
                           String adminLevel2L,
                           String adminLevel1L) {
         View view = LayoutInflater.from(IdentifyActivity.this).inflate(R.layout.callout, null);
-        final TextView txvNameL = (TextView) view.findViewById(R.id.txvNameL);
+        TextView txvNameL = (TextView) view.findViewById(R.id.txvNameL);
+        TextView txvLocation = (TextView) view.findViewById(R.id.txvLocation);
+        ImageView imvPinOnMap = (ImageView) view.findViewById(R.id.imvPinOnMap);
+        Button btnDetail = (Button) view.findViewById(R.id.btnDetail);
+
         txvNameL.setText(name);
-
-        final TextView txvLocation = (TextView) view.findViewById(R.id.txvLocation);
         txvLocation.setText(adminLevel4L + " " + adminLevel3L + " "+ "\n" + adminLevel2L + " " + adminLevel1L);
-
-        final ImageView imvPinOnMap = (ImageView) view.findViewById(R.id.imvPinOnMap);
         imvPinOnMap.setImageDrawable(IdentifyActivity.this.getResources().getDrawable(R.drawable.pin_markonmap));
+        btnDetail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(IdentifyActivity.this, DetailActivity.class);
+                intent.putExtra("nostraId", nostraId);
+                startActivity(intent);
+            }
+        });
+        if (nostraId == null || nostraId.length() == 0) {
+            btnDetail.setVisibility(View.GONE);
+        }
         return view;
     }
 
@@ -234,6 +246,7 @@ public class IdentifyActivity extends AppCompatActivity
                     @Override
                     public void onResponse(NTIdentifyResult result, String s) {
                         String nameL = result.getName_L();
+                        String nostraId = result.getNostraId();
                         String adminLevel1L = result.getAdminLevel1_L();
                         String adminLevel2L = result.getAdminLevel2_L();
                         String adminLevel3L = result.getAdminLevel3_L();
@@ -241,6 +254,7 @@ public class IdentifyActivity extends AppCompatActivity
 
                         Map<String, Object> attr = new HashMap<>();
                         attr.put("nameL", nameL);
+                        attr.put("nostraId", nostraId);
                         attr.put("adminLevel4L", adminLevel4L);
                         attr.put("adminLevel3L", adminLevel3L);
                         attr.put("adminLevel2L", adminLevel2L);
@@ -249,8 +263,8 @@ public class IdentifyActivity extends AppCompatActivity
                         mapCallout = mapView.getCallout();
 
                         // Sets custom content view to Callout
-                        mapCallout.setContent(loadView(nameL, adminLevel4L, adminLevel3L,
-                                adminLevel2L, adminLevel1L));
+                        mapCallout.setContent(loadView(nameL, nostraId,
+                                adminLevel4L, adminLevel3L, adminLevel2L, adminLevel1L));
                         mapCallout.setOffsetDp(0, 25);
                         mapCallout.show(point);
                     }

@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#FFFFFF">
+    android:background="#FFFFFF"
+    android:padding="16dp">
 
     <ImageView
         android:id="@+id/imvPinOnMap"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="8dp"
         android:src="@drawable/pin_markonmap" />
 
     <TextView
         android:id="@+id/txvNameL"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginTop="15dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_toEndOf="@id/imvPinOnMap"
         android:layout_toRightOf="@id/imvPinOnMap"
         android:maxWidth="240dp"
         android:paddingBottom="5dip"
@@ -26,13 +27,28 @@
 
     <TextView
         android:id="@+id/txvLocation"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/txvNameL"
-        android:layout_marginLeft="30dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="12dp"
+        android:layout_toEndOf="@id/imvPinOnMap"
         android:layout_toRightOf="@id/imvPinOnMap"
         android:maxWidth="240dp"
         android:textColor="#FF000000"
         android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/btnDetail"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txvLocation"
+        android:layout_marginLeft="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="12dp"
+        android:layout_toEndOf="@id/imvPinOnMap"
+        android:layout_toRightOf="@id/imvPinOnMap"
+        android:text="Detail" />
 
 </RelativeLayout>

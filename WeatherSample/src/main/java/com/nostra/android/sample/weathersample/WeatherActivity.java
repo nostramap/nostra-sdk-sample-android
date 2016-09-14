@@ -202,8 +202,8 @@ public class WeatherActivity extends AppCompatActivity
         Point wgsPoint = CoordinateConversion.decimalDegreesToPoint(
                 decimalDegrees, SpatialReference.create(SpatialReference.WKID_WGS84));
 
-        NTWeatherParameter weatherParameter = new NTWeatherParameter(wgsPoint.getY(), wgsPoint.getX());
-        NTWeatherService.executeAsync(weatherParameter, new IServiceRequestListener<NTWeatherResult>() {
+        NTWeatherParameter parameter = new NTWeatherParameter(wgsPoint.getY(), wgsPoint.getX());
+        NTWeatherService.executeAsync(parameter, new IServiceRequestListener<NTWeatherResult>() {
             @Override
             public void onResponse(NTWeatherResult result, String responseCode) {
                 locationName = result.getLocationName();
