@@ -28,6 +28,6 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:design:23.4.0'
-    compile 'com.esri.arcgis.android:arcgis-android:10.2.8-1'
-    compile 'th.co.globetech:nostra-sdk:2.0.2'
+    compile "com.esri.arcgis.android:arcgis-android:$arcgis_version"
+    compile "th.co.globetech:nostra-sdk:$nostra_sdk_version"
 }
