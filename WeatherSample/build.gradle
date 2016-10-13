@@ -8,7 +8,6 @@ android {
         applicationId "com.nostra.android.sample.weathersample"
         minSdkVersion 15
         targetSdkVersion 22
-        applicationId "android.com.bottomsheets"
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
