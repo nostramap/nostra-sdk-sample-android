@@ -6,7 +6,7 @@ buildscript {
     }
     ext {
         arcgis_version = "10.2.8-1"
-        nostra_sdk_version = "2.0.3"
+        nostra_sdk_version = "2.0.4"
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.1.3'
