@@ -197,6 +197,7 @@ public class MapActivity extends AppCompatActivity {
             Layer layer = null;
             if (map.getMapServiceType() == NTMapServiceType.TYPE_TILED_SERVICE) {
                 layer = new ArcGISTiledMapServiceLayer(url, credentials);
+                layer.setMaxScale(1D);
             } else if(map.getMapServiceType() == NTMapServiceType.TYPE_DYNAMIC_SERVICE) {
                 layer = new ArcGISDynamicMapServiceLayer(url, new int[] {}, credentials);
             } else if (map.getMapServiceType() == NTMapServiceType.TYPE_FEATURE_SERVICE) {
