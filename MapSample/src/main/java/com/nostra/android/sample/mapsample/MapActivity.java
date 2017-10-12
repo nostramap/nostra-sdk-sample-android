@@ -26,14 +26,15 @@ import com.esri.core.io.UserCredentials;
 import java.util.ArrayList;
 import java.util.List;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Parameter.Class.NTPoint;
-import th.co.nostrasdk.Parameter.Constant.NTLayerType;
-import th.co.nostrasdk.Parameter.Constant.NTMapServiceType;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.map.NTMapLayerType;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.map.NTMapServiceType;
+import th.co.nostrasdk.network.NTPoint;
 
 public class MapActivity extends AppCompatActivity {
     private ListView lvBaseMap;
@@ -53,9 +54,9 @@ public class MapActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        // Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        //todo Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
+        //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -64,9 +65,9 @@ public class MapActivity extends AppCompatActivity {
         serviceOrderList = new ArrayList<>();
 
         // Add map
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 // Bind layer list
                 bindMapLayer();
@@ -75,7 +76,7 @@ public class MapActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(MapActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -135,11 +136,11 @@ public class MapActivity extends AppCompatActivity {
 
         if (ntMapResults != null) {
             for (NTMapPermissionResult map : ntMapResults) {
-                if (map.getLayerType() == NTLayerType.TYPE_BASEMAP ||
-                    map.getLayerType() == NTLayerType.TYPE_IMAGERY) {
-                    baseMapList.add(map.getServiceName());
-                } else if (map.getLayerType() == NTLayerType.TYPE_SPECIAL_LAYER) {
-                    layerList.add(map.getServiceName());
+                if (map.getLayerType() == NTMapLayerType.TYPE_BASEMAP ||
+                        map.getLayerType() == NTMapLayerType.TYPE_IMAGERY) {
+                    baseMapList.add(map.getName());
+                } else if (map.getLayerType() == NTMapLayerType.TYPE_SPECIAL_LAYER) {
+                    layerList.add(map.getName());
                 }
                 // Add all layer with hide by default.
                 addMapLayer(map);
@@ -176,44 +177,47 @@ public class MapActivity extends AppCompatActivity {
     };
 
     private void addMapLayer(@NonNull NTMapPermissionResult map) {
-        String url = map.getServiceUrl_L();
-        String token = map.getServiceToken_L();
-        String referrer = "Referrer";    // TODO: Insert referrer
-        boolean isImageryMap = map.getLayerType() == NTLayerType.TYPE_IMAGERY;
+        NTMapServiceInfo info = map.getLocalService();
+        String url = info.getServiceUrl();
+        String token = info.getServiceToken();
+        // TODO: Insert referrer
+        String referrer = "geotalent_dmd.nostramap.com";
+        boolean isImageryMap = map.getLayerType() == NTMapLayerType.TYPE_IMAGERY;
 
-        if (!isImageryMap && (TextUtils.isEmpty(url) || TextUtils.isEmpty(token))) {
-            // Do nothing.
-        } else {
-            UserCredentials credentials = null;
-            if (!isImageryMap) {
-                credentials = new UserCredentials();
-                credentials.setUserToken(token, referrer);
-                credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
-            }
-            int mapSortIndex = map.getSortIndex();
-            int index = findSuiteIndexForLayer(mapSortIndex);
+        // If layer is NOT imagery, requires url or token to access.
+        // Only imagery layer can be used without user credentials.
+        if (!isImageryMap && (TextUtils.isEmpty(url) || TextUtils.isEmpty(token)))
+            return;
 
-            // Initiate layer by type.
-            Layer layer = null;
-            if (map.getMapServiceType() == NTMapServiceType.TYPE_TILED_SERVICE) {
-                layer = new ArcGISTiledMapServiceLayer(url, credentials);
-            } else if(map.getMapServiceType() == NTMapServiceType.TYPE_DYNAMIC_SERVICE) {
-                layer = new ArcGISDynamicMapServiceLayer(url, new int[] {}, credentials);
-            } else if (map.getMapServiceType() == NTMapServiceType.TYPE_FEATURE_SERVICE) {
-                ArcGISFeatureLayer.Options options = new ArcGISFeatureLayer.Options();
-                options.mode = ArcGISFeatureLayer.MODE.ONDEMAND;
-                layer = new ArcGISFeatureLayer(url, options, credentials);
-            } else if (map.getMapServiceType() == NTMapServiceType.TYPE_WEB_MAP_SERVICE) {
-                layer = new WMSLayer(url, null, true, null, credentials, true);
-            }
+        UserCredentials credentials = null;
+        if (!isImageryMap) {
+            credentials = new UserCredentials();
+            credentials.setUserToken(token, referrer);
+            credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
+        }
+        int mapSortIndex = map.getSortIndex();
+        int index = findSuiteIndexForLayer(mapSortIndex);
 
-            // Add new layer and hide all layer by default.
-            if (layer != null) {
-                layer.setName(map.getServiceName());
-                layer.setVisible(false);
-                mapView.addLayer(layer, index);
-                serviceOrderList.add(index, mapSortIndex);
-            }
+        // Initiate layer by type.
+        Layer layer = null;
+        if (map.getMapServiceType() == NTMapServiceType.TILED_MAP_SERVICE) {
+            layer = new ArcGISTiledMapServiceLayer(url, credentials);
+        } else if (map.getMapServiceType() == NTMapServiceType.DYNAMIC_MAP_SERVICE) {
+            layer = new ArcGISDynamicMapServiceLayer(url, new int[]{}, credentials);
+        } else if (map.getMapServiceType() == NTMapServiceType.FEATURE_SERVICE) {
+            ArcGISFeatureLayer.Options options = new ArcGISFeatureLayer.Options();
+            options.mode = ArcGISFeatureLayer.MODE.ONDEMAND;
+            layer = new ArcGISFeatureLayer(url, options, credentials);
+        } else if (map.getMapServiceType() == NTMapServiceType.WEB_MAP_SERVICE) {
+            layer = new WMSLayer(url, null, true, null, credentials, true);
+        }
+
+        // Add new layer and hide all layer by default.
+        if (layer != null) {
+            layer.setName(map.getName());
+            layer.setVisible(false);
+            mapView.addLayer(layer, index);
+            serviceOrderList.add(index, mapSortIndex);
         }
     }
 
@@ -246,7 +250,7 @@ public class MapActivity extends AppCompatActivity {
 
                 // Zoom to center of layer (if possible)
                 if (TextUtils.equals(name, layer.getName()) && map != null) {
-                    NTPoint ntPoint = map.getDefaultZoom();
+                    NTPoint ntPoint = map.getDefaultLocation();
                     if (ntPoint != null) {
                         mapPoint = new Point(ntPoint.getX(), ntPoint.getY());
                         mapView.centerAndZoom(ntPoint.getX(), ntPoint.getY(), map.getDefaultLevel());
@@ -278,7 +282,7 @@ public class MapActivity extends AppCompatActivity {
         }
         NTMapPermissionResult targetMap = null;
         for (NTMapPermissionResult map : ntMapResults) {
-            if (TextUtils.equals(map.getServiceName(), name)) {
+            if (TextUtils.equals(map.getName(), name)) {
                 targetMap = map;
             }
         }
@@ -289,7 +293,7 @@ public class MapActivity extends AppCompatActivity {
         String serviceName = null;
         for (NTMapPermissionResult map : ntMapResults) {
             if (map.getServiceId() == serviceId) {
-                serviceName = map.getServiceName();
+                serviceName = map.getName();
             }
         }
         return serviceName;
