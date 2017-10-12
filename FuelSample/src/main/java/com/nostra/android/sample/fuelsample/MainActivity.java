@@ -8,7 +8,7 @@ import android.widget.TabHost;
 
 import com.esri.android.runtime.ArcGISRuntime;
 
-import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.NTSDKEnvironment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,9 +18,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fuel);
 
-        // Setting SDK Environment (API KEY)
+        //todo Setting SDK Environment (API KEY)
         NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         TabHost tabHost = (TabHost) findViewById(R.id.tabHost_Search);

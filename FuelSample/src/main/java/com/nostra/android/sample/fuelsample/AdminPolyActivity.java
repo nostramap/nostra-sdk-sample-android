@@ -11,13 +11,14 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTAdministrativeService;
-import th.co.nostrasdk.Parameter.Constant.NTAdministrativeSort;
-import th.co.nostrasdk.Parameter.Constant.NTCountry;
-import th.co.nostrasdk.Parameter.NTAdministrativeParameter;
-import th.co.nostrasdk.Result.NTAdministrativeResult;
-import th.co.nostrasdk.Result.NTAdministrativeResultSet;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.common.NTAdministrative;
+import th.co.nostrasdk.common.NTCountry;
+import th.co.nostrasdk.info.administrative.NTAdministrativeParameter;
+import th.co.nostrasdk.info.administrative.NTAdministrativeResult;
+import th.co.nostrasdk.info.administrative.NTAdministrativeResultSet;
+import th.co.nostrasdk.info.administrative.NTAdministrativeService;
+import th.co.nostrasdk.info.administrative.NTAdministrativeSorting;
 
 public class AdminPolyActivity extends AppCompatActivity {
     private Spinner spnProvince;
@@ -79,22 +80,23 @@ public class AdminPolyActivity extends AppCompatActivity {
 
     private void displayProvince() {
         // Setting parameter for all province
+        NTAdministrative administrative = new NTAdministrative("");
         NTAdministrativeParameter param = new NTAdministrativeParameter();
-        param.setAdminLevel1("");
-        param.setAdminLevel2("");
+        param.setAdminLevel1(administrative);// TODO: 10/12/2017 set " " ควรลบออกไปเลยมั้ยครับ
+        param.setAdminLevel2(administrative);// TODO: 10/12/2017 set " " ควรลบออกไปเลยมั้ยครับ
         param.setCountry(NTCountry.THAILAND);
-        param.setSortBy(NTAdministrativeSort.SORT_BY_CODE);
+        param.setSortBy(NTAdministrativeSorting.SORT_BY_CODE);
 
         // Call NTAdministrativeService and show province
-        NTAdministrativeService.executeAsync(param, new IServiceRequestListener<NTAdministrativeResultSet>() {
+        NTAdministrativeService.executeAsync(param, new ServiceRequestListener<NTAdministrativeResultSet>() {
             @Override
-            public void onResponse(NTAdministrativeResultSet result, String responseCode) {
+            public void onResponse(NTAdministrativeResultSet result) {
                 NTAdministrativeResult[] results = result.getResults();
                 if (results != null && results.length > 0) {
                     arrNameProvince = new String[results.length];
                     arrCodeProvince = new String[results.length];
                     for (int i = 0; i < results.length; i++) {
-                        arrNameProvince[i] = results[i].getName_L();
+                        arrNameProvince[i] = results[i].getLocalName();
                         arrCodeProvince[i] = results[i].getCode();
                     }
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(AdminPolyActivity.this,
@@ -104,7 +106,7 @@ public class AdminPolyActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(AdminPolyActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -112,20 +114,21 @@ public class AdminPolyActivity extends AppCompatActivity {
 
     // Setting parameter to find all district of given province
     private void displayDistrict(String province) {
+        NTAdministrative administrative = new NTAdministrative(province.trim());
         NTAdministrativeParameter adminParam = new NTAdministrativeParameter();
-        adminParam.setAdminLevel1(province.trim());
+        adminParam.setAdminLevel1(administrative);// TODO: 10/12/2017  set ค่าของ province
         adminParam.setCountry(NTCountry.THAILAND);
-        adminParam.setSortBy(NTAdministrativeSort.SORT_BY_CODE);
+        adminParam.setSortBy(NTAdministrativeSorting.SORT_BY_CODE);
 
         // Call NTAdministrativeService and set adapter in spinner
-        NTAdministrativeService.executeAsync(adminParam, new IServiceRequestListener<NTAdministrativeResultSet>() {
+        NTAdministrativeService.executeAsync(adminParam, new ServiceRequestListener<NTAdministrativeResultSet>() {
             @Override
-            public void onResponse(NTAdministrativeResultSet result, String responseCode) {
+            public void onResponse(NTAdministrativeResultSet result) {
                 NTAdministrativeResult[] results = result.getResults();
                 arrNameDistrict = new String[results.length];
                 arrCodeDistrict = new String[results.length];
                 for (int i = 0; i < results.length; i++) {
-                    arrNameDistrict[i] = results[i].getName_L();
+                    arrNameDistrict[i] = results[i].getLocalName();
                     arrCodeDistrict[i] = results[i].getCode();
                 }
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(AdminPolyActivity.this,
@@ -134,7 +137,7 @@ public class AdminPolyActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(AdminPolyActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
