@@ -43,17 +43,18 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTMultiModalTransportService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Parameter.Class.NTLocation;
-import th.co.nostrasdk.Parameter.Class.NTMultiModalDirection;
-import th.co.nostrasdk.Parameter.Constant.NTMultiModalTransportMode;
-import th.co.nostrasdk.Parameter.NTMultiModalTransportParameter;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.nostrasdk.Result.NTMultiModalTransportResult;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTLocation;
+import th.co.nostrasdk.network.transport.NTMultiModalDirection;
+import th.co.nostrasdk.network.transport.NTMultiModalTransportParameter;
+import th.co.nostrasdk.network.transport.NTMultiModalTransportResult;
+import th.co.nostrasdk.network.transport.NTMultiModalTransportService;
+import th.co.nostrasdk.network.transport.NTMultiModalTransportationMode;
 
 public class MainActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -102,9 +103,9 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_multimodal);
 
-        // Setting SDK Environment (API KEY)
+        //todo Setting SDK Environment (API KEY)
         NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         edtToLocation = (EditText) findViewById(R.id.edtToLocation);
@@ -132,15 +133,17 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
 
     //Add map and current location
     private void initialMap() {
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
+                    // TODO: Insert referrer
+                    String referrer = "Referrer";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -155,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -273,30 +276,30 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                     ResultMode[i] = resultTravel.get(i);
                     String travel = ResultMode[i];
                     if (travel.equals(airplane)) {
-                        mode[i] = NTMultiModalTransportMode.AIR;
+                        mode[i] = NTMultiModalTransportationMode.AIR;
                     } else if (travel.equals(bus)) {
-                        mode[i] = NTMultiModalTransportMode.BUS;
+                        mode[i] = NTMultiModalTransportationMode.BUS;
                     } else if (travel.equals(mrt)) {
-                        mode[i] = NTMultiModalTransportMode.MRT;
+                        mode[i] = NTMultiModalTransportationMode.MRT;
                     } else if (travel.equals(bts)) {
-                        mode[i] = NTMultiModalTransportMode.BTS;
+                        mode[i] = NTMultiModalTransportationMode.BTS;
                     } else if (travel.equals(brt)) {
-                        mode[i] = NTMultiModalTransportMode.BRT;
+                        mode[i] = NTMultiModalTransportationMode.BRT;
                     } else if (travel.equals(airportRailLink)) {
-                        mode[i] = NTMultiModalTransportMode.ARL;
+                        mode[i] = NTMultiModalTransportationMode.ARL;
                     } else if (travel.equals(rail)) {
-                        mode[i] = NTMultiModalTransportMode.RAIL;
+                        mode[i] = NTMultiModalTransportationMode.RAIL;
                     } else if (travel.equals(boat)) {
-                        mode[i] = NTMultiModalTransportMode.BOAT;
+                        mode[i] = NTMultiModalTransportationMode.BOAT;
                     } else if (travel.equals(bmta)) {
-                        mode[i] = NTMultiModalTransportMode.BMTA;
+                        mode[i] = NTMultiModalTransportationMode.BMTA;
                     }
                 }
 
                 NTMultiModalTransportParameter param = new NTMultiModalTransportParameter(stops, mode);
-                NTMultiModalTransportService.executeAsync(param, new IServiceRequestListener<NTMultiModalTransportResult>() {
+                NTMultiModalTransportService.executeAsync(param, new ServiceRequestListener<NTMultiModalTransportResult>() {
                     @Override
-                    public void onResponse(NTMultiModalTransportResult result, String responseCode) {
+                    public void onResponse(NTMultiModalTransportResult result) {
                         try {
                             directions = result.getMinute().getDirections();
                             pinGraphicToLocation.removeAll();
@@ -348,7 +351,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                     }
 
                     @Override
-                    public void onError(String errorMessage) {
+                    public void onError(String errorMessage, int statusCode) {
                         Toast.makeText(getApplication(), errorMessage, Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -442,8 +445,8 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                         double locX = loc.getLongitude();
                         Point wgsPoint = new Point(locX, locY);
                         mapPoint = (Point) GeometryEngine.project(wgsPoint,
-                                        SpatialReference.create(4326),
-                                        mapView.getSpatialReference());
+                                SpatialReference.create(4326),
+                                mapView.getSpatialReference());
 
                         Unit mapUnit = mapView.getSpatialReference().getUnit();
                         double zoomWidth = Unit.convertUnits(5,

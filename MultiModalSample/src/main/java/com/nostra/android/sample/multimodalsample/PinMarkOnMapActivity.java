@@ -21,12 +21,13 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.core.geometry.Unit;
 import com.esri.core.io.UserCredentials;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Parameter.Class.NTPoint;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTPoint;
 
 public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -96,16 +97,17 @@ public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusC
         mapView = (MapView) findViewById(R.id.mapView);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy); // to run network operation on main thread
-
+        // TODO: 10/12/2017  API_KEY
         NTSDKEnvironment.setEnvironment("API_KEY", this);
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
                     String referrer = "Referrer";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
@@ -115,7 +117,7 @@ public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusC
                     ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
                     mapView.addLayer(layer);
 
-                    NTPoint ntPoint = map.getDefaultZoom();
+                    NTPoint ntPoint = map.getDefaultLocation();
                     if (ntPoint != null) {
                         double lon = ntPoint.getX();
                         double lat = ntPoint.getY();
@@ -125,7 +127,7 @@ public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusC
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(PinMarkOnMapActivity.this, errorMessage,Toast.LENGTH_SHORT).show();
             }
         });
