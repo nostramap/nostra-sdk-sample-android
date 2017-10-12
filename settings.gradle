@@ -8,5 +8,5 @@ include ':AddressSearchSample',
         ':WeatherSample',
         ':FuelSample',
         ':IdentifySample',
-//        ':SearchSample',
+        ':SearchSample',
         ':nostra-sdk-release'

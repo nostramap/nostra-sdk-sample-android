@@ -21,11 +21,12 @@ import com.esri.core.io.UserCredentials;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.PictureMarkerSymbol;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
 
 public class PinMarkerActivity extends AppCompatActivity {
     private MapView mapView;
@@ -60,14 +61,15 @@ public class PinMarkerActivity extends AppCompatActivity {
     }
 
     private void initializeMap() {
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
                     String referrer = "Referrer";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
@@ -94,7 +96,7 @@ public class PinMarkerActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(PinMarkerActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
