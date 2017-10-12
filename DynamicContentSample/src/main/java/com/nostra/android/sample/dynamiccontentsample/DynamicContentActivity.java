@@ -35,21 +35,23 @@ import com.esri.core.io.UserCredentials;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.PictureMarkerSymbol;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTDynamicContentListService;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Base.NTShortLinkService;
-import th.co.nostrasdk.Parameter.Constant.NTLanguage;
-import th.co.nostrasdk.Parameter.Constant.NTMapType;
-import th.co.nostrasdk.Parameter.Constant.NTShortLinkType;
-import th.co.nostrasdk.Parameter.NTShortLinkParameter;
-import th.co.nostrasdk.Result.NTDynamicContentListResult;
-import th.co.nostrasdk.Result.NTDynamicContentListResultSet;
-import th.co.nostrasdk.Result.NTDynamicContentResult;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.nostrasdk.Result.NTShortLinkResult;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.common.NTLanguage;
+import th.co.nostrasdk.common.NTMapType;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentListResult;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentListResultSet;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentListService;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentResult;
+import th.co.nostrasdk.share.link.NTShortLinkParameter;
+import th.co.nostrasdk.share.link.NTShortLinkResult;
+import th.co.nostrasdk.share.link.NTShortLinkService;
+import th.co.nostrasdk.share.link.NTShortLinkType;
 
 public class DynamicContentActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -164,14 +166,15 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
 
     private void initializeMap() {
         // Call map service to add map layer
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
                     String referrer = "Referrer";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
@@ -187,7 +190,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(DynamicContentActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -206,16 +209,15 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
 
     private void generateLayerList() {
         // Call service and show in drawer list
-        NTDynamicContentListService.executeAsync(new IServiceRequestListener<NTDynamicContentListResultSet>() {
+        NTDynamicContentListService.executeAsync(new ServiceRequestListener<NTDynamicContentListResultSet>() {
             @Override
-            public void onResponse(NTDynamicContentListResultSet result, String responseCode) {
-                dynamicLayers = result.getResults();
+            public void onResponse(NTDynamicContentListResultSet resultSet) {
+                dynamicLayers = resultSet.getResults();
                 DMCLayerAdapter layerAdapter = new DMCLayerAdapter(dynamicLayers, new DMCLayerAdapter.OnItemClickListener() {
                     @Override
                     public void onItemClick(int position) {
                         // Show result in fragment
-                        resultFragment = DMCResultFragment.newInstance(
-                                dynamicLayers[position].getLayerID(), lat, lon);
+                        resultFragment = DMCResultFragment.newInstance(dynamicLayers[position].getLayerId(), lat, lon);
                         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                         transaction.replace(R.id.frlContainer, resultFragment);
                         transaction.addToBackStack("result");
@@ -232,7 +234,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(DynamicContentActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -253,8 +255,8 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         imvBack.setVisibility(View.VISIBLE);
         imvLayer.setVisibility(View.GONE);
         txvHeader.setText("DISPLAY ON MAP");
-
-        Point p = GeometryEngine.project(dmcResult.getLongitude(), dmcResult.getLatitude(), outSR);
+        NTPoint ladLon = dmcResult.getPoint();
+        Point p = GeometryEngine.project(ladLon.getX(), ladLon.getY(), outSR);
         PictureMarkerSymbol pin = new PictureMarkerSymbol(getResources().getDrawable(R.drawable.pin_markonmap));
 
         mGraphicsLayer.addGraphic(new Graphic(p, pin));
@@ -265,22 +267,22 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         curtainView.setVisibility(View.VISIBLE);
         rllShare.setVisibility(View.VISIBLE);
 
-        NTShortLinkParameter param = new NTShortLinkParameter(dmcResult.getName_L());
-        param.setDescription(dmcResult.getAddress_L());
-        param.setLinkType(NTShortLinkType.SEARCH);
+        NTShortLinkParameter param = new NTShortLinkParameter(dmcResult.getLocalName());
+//        param.setDescription(dmcResult.getAddress_L()); // TODO: 10/12/2017 เอาออกเลยมั้ยครับ
+//        param.setLinkType(NTShortLinkType.SEARCH.);// TODO: 10/12/2017 ไม่เข้าใจอ่าครับ เอาออกมัยครับ
         param.setLanguage(NTLanguage.LOCAL);
         param.setLevel(11);
         param.setMapType(NTMapType.STREET_MAP);
 
         // Call share service and show the url
-        NTShortLinkService.executeAsync(param, new IServiceRequestListener<NTShortLinkResult>() {
+        NTShortLinkService.executeAsync(param, new ServiceRequestListener<NTShortLinkResult>() {
             @Override
-            public void onResponse(NTShortLinkResult result, String responseCode) {
+            public void onResponse(NTShortLinkResult result) {
                 txvShareUrl.setText(result.getUrl());
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(DynamicContentActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });

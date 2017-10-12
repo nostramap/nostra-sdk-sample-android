@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import th.co.nostrasdk.Result.NTDynamicContentListResult;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentListResult;
 
 /**
  * Adapter for DMC layer list
@@ -43,7 +43,7 @@ class DMCLayerAdapter extends RecyclerView.Adapter<DMCLayerAdapter.LayerViewHold
     @Override
     public void onBindViewHolder(final LayerViewHolder holder, int position) {
         NTDynamicContentListResult layer = layerResults[position];
-        holder.txvLayerName.setText(layer.getName_L());
+        holder.txvLayerName.setText(layer.getLocalName());
         holder.txvLayerName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

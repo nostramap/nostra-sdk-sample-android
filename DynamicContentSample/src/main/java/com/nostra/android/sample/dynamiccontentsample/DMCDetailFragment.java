@@ -17,7 +17,7 @@ import android.widget.TextView;
 
 import java.net.URL;
 
-import th.co.nostrasdk.Result.NTDynamicContentResult;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentResult;
 
 public class DMCDetailFragment extends Fragment {
     private static final String DMC_RESULT = "DMC_RESULT";
@@ -58,35 +58,35 @@ public class DMCDetailFragment extends Fragment {
         });
 
         ImageView imvPicture = (ImageView) layoutView.findViewById(R.id.imvPicture);
-        if (dmcResult.getMediaThumbURL() != null) {
-            new LoadImageTask(imvPicture).execute(dmcResult.getMediaThumbURL());
+        if (dmcResult.getMediaThumbnailUrl() != null) {
+            new LoadImageTask(imvPicture).execute(dmcResult.getMediaThumbnailUrl());
         }
 
         TextView txvName = (TextView) layoutView.findViewById(R.id.txvName);
-        txvName.setText(dmcResult.getName_L());
+        txvName.setText(dmcResult.getLocalName());
 
         TextView txvAddress = (TextView) layoutView.findViewById(R.id.txvAddress);
-        txvAddress.setText(dmcResult.getAddress_L());
+        txvAddress.setText(dmcResult.getLocalAddress());
 
         RelativeLayout rllDetail = (RelativeLayout) layoutView.findViewById(R.id.rllDetail);
-        if (dmcResult.getDetail_L() != null) {
+        if (dmcResult.getLocalDetail() != null) {
             rllDetail.setVisibility(View.VISIBLE);
             TextView txvDetail = (TextView) layoutView.findViewById(R.id.txvDetail);
-            txvDetail.setText(dmcResult.getDetail_L());
+            txvDetail.setText(dmcResult.getLocalDetail());
         }
 
         RelativeLayout rllInfo = (RelativeLayout) layoutView.findViewById(R.id.rllInfo);
-        if (dmcResult.getName_L() != null) {
+        if (dmcResult.getLocalName() != null) {
             rllInfo.setVisibility(View.VISIBLE);
             TextView txvName2 = (TextView) layoutView.findViewById(R.id.txvName2);
-            txvName2.setText(dmcResult.getName_L());
+            txvName2.setText(dmcResult.getLocalName());
         }
 
         RelativeLayout rllTel = (RelativeLayout) layoutView.findViewById(R.id.rllTel);
-        if (dmcResult.getTelNo() != null) {
+        if (dmcResult.getTelephoneNumber() != null) {
             rllTel.setVisibility(View.VISIBLE);
             TextView txvTel = (TextView) layoutView.findViewById(R.id.txvTel);
-            txvTel.setText(dmcResult.getTelNo());
+            txvTel.setText(dmcResult.getTelephoneNumber());
         }
 
         RelativeLayout rllWeb = (RelativeLayout) layoutView.findViewById(R.id.rllWeb);

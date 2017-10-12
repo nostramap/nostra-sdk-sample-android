@@ -10,12 +10,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTDynamicContentService;
-import th.co.nostrasdk.Parameter.Constant.NTDynamicContentSort;
-import th.co.nostrasdk.Parameter.NTDynamicContentParameter;
-import th.co.nostrasdk.Result.NTDynamicContentResult;
-import th.co.nostrasdk.Result.NTDynamicContentResultSet;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentParameter;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentResult;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentResultSet;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentService;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentSorting;
 
 public class DMCResultFragment extends Fragment {
     private static final String LAYER_ID = "LAYER_ID";
@@ -67,15 +67,15 @@ public class DMCResultFragment extends Fragment {
         final int pageNumber = 1;
         final int numberOfReturn = 5;
         NTDynamicContentParameter parameter = new NTDynamicContentParameter(layerID, lat, lon);
-        parameter.setSortBy(NTDynamicContentSort.NAME_ASC);
-        parameter.setNumReturn(numberOfReturn);
+        parameter.setSortBy(NTDynamicContentSorting.NAME_IN_ASCENDING);
+        parameter.setNumberOfResult(numberOfReturn);
         parameter.setPage(pageNumber);
         parameter.setRadius(2000);
 
         // Call service
-        NTDynamicContentService.executeAsync(parameter, new IServiceRequestListener<NTDynamicContentResultSet>() {
+        NTDynamicContentService.executeAsync(parameter, new ServiceRequestListener<NTDynamicContentResultSet>() {
             @Override
-            public void onResponse(NTDynamicContentResultSet result, String responseCode) {
+            public void onResponse(NTDynamicContentResultSet result) {
                 dmcResults = result.getResults();
                 DMCResultAdapter dmcResultAdapter = new DMCResultAdapter(dmcResults, new DMCResultAdapter.OnItemClickListener() {
                     @Override
@@ -91,7 +91,7 @@ public class DMCResultFragment extends Fragment {
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
             }
         });

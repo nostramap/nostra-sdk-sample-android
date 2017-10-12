@@ -13,7 +13,8 @@ import android.widget.TextView;
 
 import java.net.URL;
 
-import th.co.nostrasdk.Result.NTDynamicContentResult;
+import th.co.nostrasdk.query.dynamic.NTDynamicContentResult;
+import th.co.nostrasdk.query.dynamic.NTPoiInfo;
 
 class DMCResultAdapter extends RecyclerView.Adapter<DMCResultAdapter.ResultViewHolder> {
     private NTDynamicContentResult[] dmcResults;
@@ -53,9 +54,10 @@ class DMCResultAdapter extends RecyclerView.Adapter<DMCResultAdapter.ResultViewH
     @Override
     public void onBindViewHolder(final ResultViewHolder holder, int position) {
         NTDynamicContentResult result = dmcResults[position];
-        holder.txvName.setText(result.getName_L());
-        holder.txvAddress.setText(result.getAddress_L());
-        holder.txvAddInfo.setText(result.getAddInfo_L());
+        holder.txvName.setText(result.getLocalName());
+        holder.txvAddress.setText(result.getLocalAddress());
+        NTPoiInfo additionalInfo = result.getAdditionalInfo();
+        holder.txvAddInfo.setText(additionalInfo.getLocalInfo());
         new LoadImageTask(holder.imvLogo).execute(result.getIcon());
 
         holder.rllResult.setOnClickListener(new View.OnClickListener() {
