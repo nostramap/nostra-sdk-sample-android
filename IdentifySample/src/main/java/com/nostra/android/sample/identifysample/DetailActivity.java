@@ -9,12 +9,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTExtraContentService;
-import th.co.nostrasdk.Parameter.Class.NTExtraContentFood;
-import th.co.nostrasdk.Parameter.Class.NTExtraContentTravel;
-import th.co.nostrasdk.Parameter.NTExtraContentParameter;
-import th.co.nostrasdk.Result.NTExtraContentResult;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.query.extra.NTAttraction;
+import th.co.nostrasdk.query.extra.NTEntertainmentService;
+import th.co.nostrasdk.query.extra.NTExtraContentFood;
+import th.co.nostrasdk.query.extra.NTExtraContentParameter;
+import th.co.nostrasdk.query.extra.NTExtraContentResult;
+import th.co.nostrasdk.query.extra.NTExtraContentService;
+import th.co.nostrasdk.query.extra.NTExtraContentTravel;
+import th.co.nostrasdk.query.extra.NTFoodType;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -42,24 +45,29 @@ public class DetailActivity extends AppCompatActivity {
         String nostraId = getIntent().getStringExtra("nostraId");
         if (nostraId != null && nostraId.length() > 0) {
             NTExtraContentParameter param = new NTExtraContentParameter(nostraId);
-            NTExtraContentService.executeAsync(param, new IServiceRequestListener<NTExtraContentResult>() {
+            NTExtraContentService.executeAsync(param, new ServiceRequestListener<NTExtraContentResult>() {
                 @Override
-                public void onResponse(NTExtraContentResult result, String responseCode) {
+                public void onResponse(NTExtraContentResult result) {
                     if (result != null) {
                         NTExtraContentTravel travel = result.getTravel();
                         NTExtraContentFood food = result.getFood();
-
+                        // TODO: 10/12/2017 please recheck again.
                         if (travel != null) {
-                            txvNameL.setText(travel.getPlaceName_L());
-                            txvInfo.setText(travel.getAttraction1_L());
-                            txvDesc.setText(travel.getHistory_L());
-                            loadPicture(travel.getPicture1());
+                            txvNameL.setText(travel.getPlaceZone());
+                            NTAttraction[] attractions = travel.getAttractions();
+                            txvInfo.setText(attractions[0].getLocalAttraction());
+                            txvDesc.setText(travel.getLocalHistory());
+                            String[] picture = travel.getPictureUrls();
+                            loadPicture(picture[0]);
 
                         } else if (food != null) {
-                            txvNameL.setText(food.getPlaceName_L());
-                            txvInfo.setText(food.getFoodType1_L());
-                            txvDesc.setText(food.getEntertainService_L());
-                            loadPicture(food.getPicture1());
+                            txvNameL.setText(food.getPlaceZone());
+                            NTFoodType[] type = food.getFoodTypes();
+                            txvInfo.setText(type[0].getLocalType());
+                            NTEntertainmentService entertainmentService = food.getEntertainmentService();
+                            txvDesc.setText(entertainmentService.getLocalService());
+                            String[] picture = food.getPictureUrls();
+                            loadPicture(picture[0]);
 
                         } else {
                             Toast.makeText(DetailActivity.this, "No data for given nostraId.",
@@ -70,7 +78,7 @@ public class DetailActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onError(String errorMessage) {
+                public void onError(String errorMessage, int statusCode) {
                     Toast.makeText(DetailActivity.this, "No data for given nostraId.",
                             Toast.LENGTH_SHORT).show();
                     onBackPressed();

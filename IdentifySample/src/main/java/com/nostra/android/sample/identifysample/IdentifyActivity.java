@@ -35,15 +35,17 @@ import com.esri.core.symbol.PictureMarkerSymbol;
 import java.util.HashMap;
 import java.util.Map;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTIdentifyService;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Parameter.Class.NTPoint;
-import th.co.nostrasdk.Parameter.NTIdentifyParameter;
-import th.co.nostrasdk.Result.NTIdentifyResult;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.common.NTAdministrative;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.query.poi.NTIdentifyParameter;
+import th.co.nostrasdk.query.poi.NTIdentifyResult;
+import th.co.nostrasdk.query.poi.NTIdentifyService;
 
 public class IdentifyActivity extends AppCompatActivity
         implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
@@ -61,9 +63,9 @@ public class IdentifyActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_identify);
 
-        // Setting SDK Environment (API KEY)
+        //todo Setting SDK Environment (API KEY)
         NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -140,15 +142,17 @@ public class IdentifyActivity extends AppCompatActivity
 
     // Add map
     private void initialMap() {
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
-                    String referrer = "referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
+                    // TODO: Insert referrer
+                    String referrer = "referrer";    
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -157,7 +161,7 @@ public class IdentifyActivity extends AppCompatActivity
                     ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
                     mapView.addLayer(layer);
 
-                    NTPoint ntPoint = map.getDefaultZoom();
+                    NTPoint ntPoint = map.getDefaultLocation();
                     if (ntPoint != null) {
                         lat = ntPoint.getY();
                         lon = ntPoint.getX();
@@ -174,7 +178,7 @@ public class IdentifyActivity extends AppCompatActivity
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(IdentifyActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -240,17 +244,23 @@ public class IdentifyActivity extends AppCompatActivity
                 Graphic graphic = new Graphic(point, markerSymbol);
                 final int id = graphicsLayerPin.addGraphic(graphic);
                 // Setting parameter
-                NTIdentifyParameter param = new NTIdentifyParameter(wgsPoint.getY(), wgsPoint.getX());
+                NTPoint pointParam = new NTPoint(wgsPoint.getX(),wgsPoint.getY());
+                NTIdentifyParameter param = new NTIdentifyParameter(pointParam);
                 // Call NTIdentifyService and show callout
-                NTIdentifyService.executeAsync(param, new IServiceRequestListener<NTIdentifyResult>() {
+                NTIdentifyService.executeAsync(param, new ServiceRequestListener<NTIdentifyResult>() {
                     @Override
-                    public void onResponse(NTIdentifyResult result, String s) {
-                        String nameL = result.getName_L();
+                    public void onResponse(NTIdentifyResult result) {
+                        // TODO: 10/12/2017 recheck adain. 
+                        String nameL = result.getLocalName();
                         String nostraId = result.getNostraId();
-                        String adminLevel1L = result.getAdminLevel1_L();
-                        String adminLevel2L = result.getAdminLevel2_L();
-                        String adminLevel3L = result.getAdminLevel3_L();
-                        String adminLevel4L = result.getAdminLevel4_L();
+                        NTAdministrative admin = result.getAdminLevel1();
+                        String adminLevel1L = admin.getLocalName();
+                        admin = result.getAdminLevel2();
+                        String adminLevel2L = admin.getLocalName();
+                        admin = result.getAdminLevel3();
+                        String adminLevel3L = admin.getLocalName();
+                        admin = result.getAdminLevel4();
+                        String adminLevel4L = admin.getLocalName();
 
                         Map<String, Object> attr = new HashMap<>();
                         attr.put("nameL", nameL);
@@ -270,8 +280,8 @@ public class IdentifyActivity extends AppCompatActivity
                     }
 
                     @Override
-                    public void onError(String s) {
-                        Toast.makeText(IdentifyActivity.this, s, Toast.LENGTH_SHORT).show();
+                    public void onError(String error,int statusCode) {
+                        Toast.makeText(IdentifyActivity.this, error, Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {
