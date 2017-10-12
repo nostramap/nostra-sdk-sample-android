@@ -8,11 +8,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTAddressSearchService;
-import th.co.nostrasdk.Parameter.NTAddressSearchParameter;
-import th.co.nostrasdk.Result.NTAddressSearchResult;
-import th.co.nostrasdk.Result.NTAddressSearchResultSet;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.search.address.NTAddressSearchParameter;
+import th.co.nostrasdk.search.address.NTAddressSearchResult;
+import th.co.nostrasdk.search.address.NTAddressSearchResultSet;
+import th.co.nostrasdk.search.address.NTAddressSearchService;
 
 public class AttributeActivity extends Activity {
     private EditText edtHouseNo;
@@ -55,14 +55,14 @@ public class AttributeActivity extends Activity {
             param.setAdminLevel2(edtAdminLevel2.getText().toString());
             param.setAdminLevel3(edtAdminLevel3.getText().toString());
             param.setPostcode(edtPostcode.getText().toString());
-            param.setNumReturn(5);
+            param.setNumberOfResult(5);
 
             // Call service NTAddressSearchService with parameter
-            NTAddressSearchService.executeAsync(param, new IServiceRequestListener<NTAddressSearchResultSet>() {
+            NTAddressSearchService.executeAsync(param, new ServiceRequestListener<NTAddressSearchResultSet>() {
                 @Override
-                public void onResponse(NTAddressSearchResultSet result, String responseCode) {
-                    NTAddressSearchResult[] results = result.getResults();
-                    if (results != null && results.length > 0) {
+                public void onResponse(NTAddressSearchResultSet resultSet) {
+                    NTAddressSearchResult[] results = resultSet.getResults();
+                    if (results.length > 0) {
                         Intent intent = new Intent(AttributeActivity.this, ListResultsActivity.class);
                         intent.putExtra("results", results);
                         startActivity(intent);
@@ -72,7 +72,7 @@ public class AttributeActivity extends Activity {
                 }
 
                 @Override
-                public void onError(String errorMessage) {
+                public void onError(String errorMessage, int errorCode) {
                     Toast.makeText(AttributeActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                 }
             });

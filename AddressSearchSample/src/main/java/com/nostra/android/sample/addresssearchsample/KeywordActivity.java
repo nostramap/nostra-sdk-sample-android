@@ -8,11 +8,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTAddressSearchService;
-import th.co.nostrasdk.Parameter.NTAddressSearchParameter;
-import th.co.nostrasdk.Result.NTAddressSearchResult;
-import th.co.nostrasdk.Result.NTAddressSearchResultSet;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.search.address.NTAddressSearchParameter;
+import th.co.nostrasdk.search.address.NTAddressSearchResult;
+import th.co.nostrasdk.search.address.NTAddressSearchResultSet;
+import th.co.nostrasdk.search.address.NTAddressSearchService;
 
 public class KeywordActivity extends Activity {
     private EditText edtKeyword;
@@ -23,7 +23,7 @@ public class KeywordActivity extends Activity {
         setContentView(R.layout.activity_keyword);
         edtKeyword = (EditText) findViewById(R.id.edtKeyword);
 
-        Button btnSearch = (Button)findViewById(R.id.btnSearch);
+        Button btnSearch = (Button) findViewById(R.id.btnSearch);
         btnSearch.setOnClickListener(btnSearchClick);
     }
 
@@ -32,22 +32,24 @@ public class KeywordActivity extends Activity {
         public void onClick(View v) {
             // Determine parameter
             NTAddressSearchParameter param = new NTAddressSearchParameter(edtKeyword.getText().toString());
-            param.setNumReturn(5);
+            param.setNumberOfResult(5);
 
             // Call service NTAddressSearchService with parameter
-            NTAddressSearchService.executeAsync(param, new IServiceRequestListener<NTAddressSearchResultSet>() {
+            NTAddressSearchService.executeAsync(param, new ServiceRequestListener<NTAddressSearchResultSet>() {
                 @Override
-                public void onResponse(NTAddressSearchResultSet result, String responseCode) {
-                    NTAddressSearchResult[] results = result.getResults();
-                    if (results != null && results.length > 0) {
+                public void onResponse(NTAddressSearchResultSet resultSet) {
+                    NTAddressSearchResult[] results = resultSet.getResults();
+                    if (results.length > 0) {
                         Intent intent = new Intent(KeywordActivity.this, ListResultsActivity.class);
                         intent.putExtra("results", results);
                         startActivity(intent);
+                    } else {
+                        Toast.makeText(KeywordActivity.this, "No Results", Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
-                public void onError(String errorMessage) {
+                public void onError(String errorMessage, int statusCode) {
                     Toast.makeText(KeywordActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                 }
             });
