@@ -40,22 +40,22 @@ import org.codehaus.jackson.JsonParser;
 
 import java.io.IOException;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTClosestFacilityService;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Parameter.Class.NTLocation;
-import th.co.nostrasdk.Parameter.Class.NTSpatialReference;
-import th.co.nostrasdk.Parameter.Constant.NTCountry;
-import th.co.nostrasdk.Parameter.Constant.NTFacilityDirection;
-import th.co.nostrasdk.Parameter.Constant.NTImpedanceMode;
-import th.co.nostrasdk.Parameter.Constant.NTLanguage;
-import th.co.nostrasdk.Parameter.Constant.NTTravelMode;
-import th.co.nostrasdk.Parameter.NTClosestFacilityParameter;
-import th.co.nostrasdk.Result.NTClosestFacilityResult;
-import th.co.nostrasdk.Result.NTClosestFacilityResultSet;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.common.NTImpedanceMode;
+import th.co.nostrasdk.common.NTLanguage;
+import th.co.nostrasdk.common.NTSpatialReference;
+import th.co.nostrasdk.common.NTTravelMode;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTLocation;
+import th.co.nostrasdk.network.facility.NTClosestFacilityParameter;
+import th.co.nostrasdk.network.facility.NTClosestFacilityResult;
+import th.co.nostrasdk.network.facility.NTClosestFacilityResultSet;
+import th.co.nostrasdk.network.facility.NTClosestFacilityService;
+import th.co.nostrasdk.network.facility.NTFacilityDirection;
 
 public class ClosestFacilityActivity extends AppCompatActivity
         implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
@@ -79,9 +79,9 @@ public class ClosestFacilityActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_closest_facility);
 
-        // Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        //todo Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
+        //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -132,15 +132,17 @@ public class ClosestFacilityActivity extends AppCompatActivity
     }
 
     private void initializeMap() {
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
+                    // TODO: Insert referrer
+                    String referrer = "geotalent_dmd.nostramap.com";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -158,7 +160,7 @@ public class ClosestFacilityActivity extends AppCompatActivity
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(ClosestFacilityActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -179,57 +181,55 @@ public class ClosestFacilityActivity extends AppCompatActivity
                 new NTLocation("Siam Center", 13.746321783330115, 100.53279034433699),
                 new NTLocation("Siam Paragon", 13.746155248206387, 100.53481456769379)
         };
-        NTLocation[] incident = new NTLocation[]{
-                new NTLocation("incident", pinPoint.getY(), pinPoint.getX())
-        };
+        NTLocation incident = new NTLocation("incident", pinPoint.getY(), pinPoint.getX());
         NTClosestFacilityParameter parameter = new NTClosestFacilityParameter(facilities, incident);
         parameter.setTravelMode(NTTravelMode.CAR);
         parameter.setImpedance(NTImpedanceMode.TIME);
         parameter.setTravelDirection(NTFacilityDirection.TO_FACILITY);
         parameter.setTargetFacilityCount(4);
-        parameter.setOutSR(NTSpatialReference.WEB_MERCATOR);
+        parameter.setOutSpatialReference(NTSpatialReference.WEB_MERCATOR);
         parameter.setLanguage(NTLanguage.LOCAL);
-        parameter.setCountry(NTCountry.THAILAND);
 
         // Call service
-        NTClosestFacilityService.executeAsync(parameter, new IServiceRequestListener<NTClosestFacilityResultSet>() {
+        NTClosestFacilityService.executeAsync(parameter, new ServiceRequestListener<NTClosestFacilityResultSet>() {
             @Override
-            public void onResponse(NTClosestFacilityResultSet result, String responseCode) {
+            public void onResponse(NTClosestFacilityResultSet result) {
                 // If successful
                 NTClosestFacilityResult[] results = result.getResults();
-
-                SimpleLineSymbol lineSymbol;
-                for (NTClosestFacilityResult cfr : results) {
-                    String name = TextUtils.isEmpty(cfr.getFacilityName()) ? "" : cfr.getFacilityName();
-                    if (name.endsWith("Siam Discovery")) {
-                        lineSymbol = new SimpleLineSymbol(Color.BLUE, 5);
-                    } else if (name.endsWith("Siam Center")) {
-                        lineSymbol = new SimpleLineSymbol(Color.RED, 5);
-                    } else if (name.endsWith("Siam Paragon")) {
-                        lineSymbol = new SimpleLineSymbol(Color.MAGENTA, 5);
-                    } else {
-                        lineSymbol = new SimpleLineSymbol(Color.GREEN, 5);
-                    }
-                    try {
-                        JsonParser parser = new JsonFactory().createJsonParser(cfr.getShape());
-                        MapGeometry mapGeometry = GeometryEngine.jsonToGeometry(parser);
-                        Geometry geometry = mapGeometry.getGeometry();
-
-                        if (geometry != null && !geometry.isEmpty()) {
-                            geometry = GeometryEngine.project(geometry,
-                                    SpatialReference.create(4326),
-                                    SpatialReference.create(102100));
-                            Graphic routeGraphic = new Graphic(geometry, lineSymbol);
-                            routeLayer.addGraphic(routeGraphic);
+                if (results != null) {
+                    SimpleLineSymbol lineSymbol;
+                    for (NTClosestFacilityResult cfr : results) {
+                        String name = TextUtils.isEmpty(cfr.getFacilityName()) ? "" : cfr.getFacilityName();
+                        if (name.endsWith("Siam Discovery")) {
+                            lineSymbol = new SimpleLineSymbol(Color.BLUE, 5);
+                        } else if (name.endsWith("Siam Center")) {
+                            lineSymbol = new SimpleLineSymbol(Color.RED, 5);
+                        } else if (name.endsWith("Siam Paragon")) {
+                            lineSymbol = new SimpleLineSymbol(Color.MAGENTA, 5);
+                        } else {
+                            lineSymbol = new SimpleLineSymbol(Color.GREEN, 5);
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        try {
+                            JsonParser parser = new JsonFactory().createJsonParser(cfr.getShape());
+                            MapGeometry mapGeometry = GeometryEngine.jsonToGeometry(parser);
+                            Geometry geometry = mapGeometry.getGeometry();
+
+                            if (geometry != null && !geometry.isEmpty()) {
+                                geometry = GeometryEngine.project(geometry,
+                                        SpatialReference.create(4326),
+                                        SpatialReference.create(102100));
+                                Graphic routeGraphic = new Graphic(geometry, lineSymbol);
+                                routeLayer.addGraphic(routeGraphic);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 // If error
                 Toast.makeText(ClosestFacilityActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }

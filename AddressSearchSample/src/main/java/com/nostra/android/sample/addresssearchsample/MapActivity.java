@@ -134,7 +134,6 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
                 NTMapPermissionResult mapPermission = getThailandBasemap();
                 if (mapPermission != null) {
                     NTMapServiceInfo localInfo = mapPermission.getLocalService();
-
                     String url = localInfo.getServiceUrl();
                     String token = localInfo.getServiceToken();
                     // TODO: Insert referrer
