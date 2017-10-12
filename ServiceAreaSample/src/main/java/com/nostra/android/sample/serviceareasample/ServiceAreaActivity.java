@@ -5,6 +5,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageButton;
@@ -35,20 +36,19 @@ import com.esri.core.symbol.Symbol;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Base.NTServiceAreaService;
-import th.co.nostrasdk.Parameter.Class.NTLocation;
-import th.co.nostrasdk.Parameter.Constant.NTCountry;
-import th.co.nostrasdk.Parameter.Constant.NTImpedanceMode;
-import th.co.nostrasdk.Parameter.Constant.NTLanguage;
-import th.co.nostrasdk.Parameter.Constant.NTTravelMode;
-import th.co.nostrasdk.Parameter.NTServiceAreaParameter;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.nostrasdk.Result.NTServiceAreaResult;
-import th.co.nostrasdk.Result.NTServiceAreaResultSet;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.common.NTImpedanceMode;
+import th.co.nostrasdk.common.NTLanguage;
+import th.co.nostrasdk.common.NTTravelMode;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.network.NTLocation;
+import th.co.nostrasdk.network.service.NTServiceAreaParameter;
+import th.co.nostrasdk.network.service.NTServiceAreaResult;
+import th.co.nostrasdk.network.service.NTServiceAreaResultSet;
+import th.co.nostrasdk.network.service.NTServiceAreaService;
 
 public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTapListener, OnLongPressListener {
     private MapView mapView;
@@ -76,9 +76,9 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service_area);
 
-        // Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        //todo Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
+        //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -127,6 +127,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
             ldm.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
             ldm.setLocationListener(new LocationListener() {
                 boolean firstRun = true;
+
                 @Override
                 public void onLocationChanged(Location location) {
                     lat = location.getLatitude();
@@ -139,13 +140,16 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
                 }
 
                 @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {}
+                public void onStatusChanged(String provider, int status, Bundle extras) {
+                }
 
                 @Override
-                public void onProviderEnabled(String provider) {}
+                public void onProviderEnabled(String provider) {
+                }
 
                 @Override
-                public void onProviderDisabled(String provider) {}
+                public void onProviderDisabled(String provider) {
+                }
             });
             ldm.start();
         }
@@ -167,15 +171,15 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
 
     private void initializeMap() {
         // Call map service to add map layer
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    String url = map.getLocalService().getServiceUrl();
+                    String token = map.getLocalService().getServiceToken();
+                    String referrer = "geotalent_dmd.nostramap.com";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -193,7 +197,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(ServiceAreaActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -223,14 +227,13 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
         NTServiceAreaParameter param = new NTServiceAreaParameter(facilities, breaks);
         param.setTravelMode(NTTravelMode.CAR);
         param.setImpedance(NTImpedanceMode.TIME);
-        param.setTollRoad(true);
+        param.setUseTollRoad(true);
         param.setLanguage(NTLanguage.LOCAL);
-        param.setCountry(NTCountry.THAILAND);
 
         // Call service
-        NTServiceAreaService.executeAsync(param, new IServiceRequestListener<NTServiceAreaResultSet>() {
+        NTServiceAreaService.executeAsync(param, new ServiceRequestListener<NTServiceAreaResultSet>() {
             @Override
-            public void onResponse(NTServiceAreaResultSet result, String responseCode) {
+            public void onResponse(NTServiceAreaResultSet result) {
                 // Remove all previous result.
                 saLayer.removeAll();
 
@@ -240,22 +243,24 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
                         Envelope lineEnv = new Envelope();
 
                         NTServiceAreaResult[] results = result.getResults();
-                        for (int i = 0; i < results.length; i++) {
-                            JsonParser parser = new JsonFactory().createJsonParser(results[i].getShape());
-                            MapGeometry mapGeometry = GeometryEngine.jsonToGeometry(parser);
-                            Geometry geometry = mapGeometry.getGeometry();
+                        if (results != null && results.length > 0) {
+                            for (int i = 0; i < results.length; i++) {
+                                JsonParser parser = new JsonFactory().createJsonParser(results[i].getShape());
+                                MapGeometry mapGeometry = GeometryEngine.jsonToGeometry(parser);
+                                Geometry geometry = mapGeometry.getGeometry();
 
-                            if (geometry != null && !geometry.isEmpty()) {
-                                geometry = GeometryEngine.project(geometry,
-                                        SpatialReference.create(4326),
-                                        SpatialReference.create(102100));
+                                if (geometry != null && !geometry.isEmpty()) {
+                                    geometry = GeometryEngine.project(geometry,
+                                            SpatialReference.create(4326),
+                                            SpatialReference.create(102100));
 
-                                Symbol symbol = i % 3 == 0 ? largeSymbol : i % 2 == 0? mediumSymbol : smallSymbol;
-                                Graphic routeGraphic = new Graphic(geometry, symbol);
-                                saLayer.addGraphic(routeGraphic);
+                                    Symbol symbol = i % 3 == 0 ? largeSymbol : i % 2 == 0 ? mediumSymbol : smallSymbol;
+                                    Graphic routeGraphic = new Graphic(geometry, symbol);
+                                    saLayer.addGraphic(routeGraphic);
 
-                                geometry.queryEnvelope(lineEnv);
-                                allEnv.merge(lineEnv);
+                                    geometry.queryEnvelope(lineEnv);
+                                    allEnv.merge(lineEnv);
+                                }
                             }
                         }
                         // Zoom to the extent of the service area polygon with a padding
@@ -273,7 +278,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(ServiceAreaActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -311,7 +316,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
 
         // Draw pin on map
         Point point = mapView.toMapPoint(x, y);
-        PictureMarkerSymbol pin = new PictureMarkerSymbol(getResources().getDrawable(R.drawable.pin_markonmap));
+        PictureMarkerSymbol pin = new PictureMarkerSymbol(ContextCompat.getDrawable(this,R.drawable.pin_markonmap));
         pinId = mGraphicsLayer.addGraphic(new Graphic(point, pin));
         pinOnMap = true;
 
