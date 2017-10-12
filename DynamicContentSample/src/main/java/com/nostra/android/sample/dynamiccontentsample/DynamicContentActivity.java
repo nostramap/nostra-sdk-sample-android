@@ -79,9 +79,9 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dynamic_map_content);
 
-        // Setting SDK Environment (API KEY)
+        //todo Setting SDK Environment (API KEY)
         NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -175,7 +175,8 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
                     NTMapServiceInfo info = map.getLocalService();
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    // TODO: Insert referrer
+                    String referrer = "Referrer";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);

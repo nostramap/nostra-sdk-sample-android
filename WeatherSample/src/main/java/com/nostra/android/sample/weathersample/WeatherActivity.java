@@ -31,15 +31,16 @@ import com.esri.core.io.UserCredentials;
 
 import java.util.Locale;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Base.NTWeatherService;
-import th.co.nostrasdk.Parameter.Class.NTWeather;
-import th.co.nostrasdk.Parameter.NTWeatherParameter;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.nostrasdk.Result.NTWeatherResult;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.info.weather.NTWeather;
+import th.co.nostrasdk.info.weather.NTWeatherParameter;
+import th.co.nostrasdk.info.weather.NTWeatherResult;
+import th.co.nostrasdk.info.weather.NTWeatherService;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
 
 public class WeatherActivity extends AppCompatActivity
         implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
@@ -70,9 +71,9 @@ public class WeatherActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
 
-        // Setting SDK Environment (API KEY)
+        //todo Setting SDK Environment (API KEY)
         NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -87,15 +88,17 @@ public class WeatherActivity extends AppCompatActivity
         bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet_layout));
 
         //Add layer map
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
+                    // TODO: Insert referrer
+                    String referrer = "Referrer";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -117,7 +120,7 @@ public class WeatherActivity extends AppCompatActivity
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(WeatherActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -203,18 +206,18 @@ public class WeatherActivity extends AppCompatActivity
                 decimalDegrees, SpatialReference.create(SpatialReference.WKID_WGS84));
 
         NTWeatherParameter parameter = new NTWeatherParameter(wgsPoint.getY(), wgsPoint.getX());
-        NTWeatherService.executeAsync(parameter, new IServiceRequestListener<NTWeatherResult>() {
+        NTWeatherService.executeAsync(parameter, new ServiceRequestListener<NTWeatherResult>() {
             @Override
-            public void onResponse(NTWeatherResult result, String responseCode) {
+            public void onResponse(NTWeatherResult result) {
                 locationName = result.getLocationName();
                 NTWeather[] weathers = result.getWeathers();
                 if (weathers != null && weathers.length > 0) {
                     urlIcon = weathers[0].getIcon();
-                    temperature = weathers[0].getTemperature().getAvg();
+                    temperature = weathers[0].getTemperature().getAverage();
                     temperatureMin = weathers[0].getTemperature().getMin();
                     temperatureMax = weathers[0].getTemperature().getMax();
-                    time = weathers[0].getTimestamp();
-                    description = weathers[0].getDescription();
+                    time = weathers[0].getDatetime();
+                    description = weathers[0].getWeatherDescription();
 
                     // Sets custom content view to Callout
                     mapCallout = mapView.getCallout();
@@ -228,7 +231,7 @@ public class WeatherActivity extends AppCompatActivity
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(WeatherActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
