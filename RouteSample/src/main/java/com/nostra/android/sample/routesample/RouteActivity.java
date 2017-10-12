@@ -45,21 +45,22 @@ import org.codehaus.jackson.JsonParser;
 
 import java.util.Locale;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTRouteService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Parameter.Class.NTDirection;
-import th.co.nostrasdk.Parameter.Class.NTLocation;
-import th.co.nostrasdk.Parameter.Class.NTPoint;
-import th.co.nostrasdk.Parameter.Constant.NTCountry;
-import th.co.nostrasdk.Parameter.Constant.NTImpedanceMode;
-import th.co.nostrasdk.Parameter.Constant.NTLanguage;
-import th.co.nostrasdk.Parameter.Constant.NTTravelMode;
-import th.co.nostrasdk.Parameter.NTRouteParameter;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.nostrasdk.Result.NTRouteResult;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.common.NTCountry;
+import th.co.nostrasdk.common.NTImpedanceMode;
+import th.co.nostrasdk.common.NTLanguage;
+import th.co.nostrasdk.common.NTTravelMode;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTDirection;
+import th.co.nostrasdk.network.NTLocation;
+import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.network.route.NTRouteParameter;
+import th.co.nostrasdk.network.route.NTRouteResult;
+import th.co.nostrasdk.network.route.NTRouteService;
 
 public class RouteActivity extends AppCompatActivity implements OnStatusChangedListener {
 
@@ -102,9 +103,9 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_route);
 
-        // Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        //todo Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
+        //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -135,15 +136,16 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         lineSymbol = new SimpleLineSymbol(green, 8F, SimpleLineSymbol.STYLE.SOLID);
 
         // Add map
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
+                    String referrer = "geotalent_dmd.nostramap.com";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -158,7 +160,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(RouteActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -203,7 +205,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         mapView.setOnSingleTapListener(new OnSingleTapListener() {
             @Override
             public void onSingleTap(float v, float v1) {
-                if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+                if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 }
             }
@@ -277,18 +279,17 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
             }
             NTRouteParameter param = new NTRouteParameter(stops);
             param.setTravelMode(travelMode);
-            param.setCountry(NTCountry.THAILAND);
             param.setImpedance(NTImpedanceMode.TIME);
             param.setLanguage(NTLanguage.LOCAL);
             param.setReturnRouteDetail(true);
             param.setFindBestSequence(true);
             param.setPreserveFirstStop(true);
             param.setPreserveLastStop(true);
-            param.setTollRoad(true);
+            param.setUseTollRoad(true);
 
-            NTRouteService.executeAsync(param, new IServiceRequestListener<NTRouteResult>() {
+            NTRouteService.executeAsync(param, new ServiceRequestListener<NTRouteResult>() {
                 @Override
-                public void onResponse(NTRouteResult result, String s) {
+                public void onResponse(NTRouteResult result) {
                     ntRouteResult = result;
 
                     // Remove previous graphics.
@@ -320,15 +321,18 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
                             Graphic graphicPinFromLocation = new Graphic(fromPoint, fromMarkerSymbol);
 
                             Point point = null;
-                            for (NTDirection direction : ntRouteResult.getDirections()) {
-                                NTPoint facilityGeometry = direction.getPoint();
-                                point = new Point(facilityGeometry.getX(), facilityGeometry.getY());
-
-                                point = (Point) GeometryEngine.project(point,
-                                        SpatialReference.create(4326),
-                                        SpatialReference.create(102100));
-                                Graphic pointGraphic = new Graphic(point, directionSymbol);
-                                pinGraphicLayer.addGraphic(pointGraphic);
+                            if (ntRouteResult.getDirections() != null) {
+                                for (NTDirection direction : ntRouteResult.getDirections()) {
+                                    NTPoint facilityGeometry = direction.getPoint();
+                                    if (facilityGeometry != null) {
+                                        point = new Point(facilityGeometry.getX(), facilityGeometry.getY());
+                                    }
+                                    point = (Point) GeometryEngine.project(point,
+                                            SpatialReference.create(4326),
+                                            SpatialReference.create(102100));
+                                    Graphic pointGraphic = new Graphic(point, directionSymbol);
+                                    pinGraphicLayer.addGraphic(pointGraphic);
+                                }
                             }
                             Graphic graphicPinToLocation = new Graphic(point, destMarkerSymbol);
                             pinGraphicLayer.addGraphic(graphicPinToLocation);
@@ -342,7 +346,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
                 }
 
                 @Override
-                public void onError(String errorMessage) {
+                public void onError(String errorMessage, int statusCode) {
                     Toast.makeText(RouteActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                 }
             });
@@ -405,7 +409,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
     //Set state bottom sheet
     @Override
     public void onBackPressed() {
-        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else {
             super.onBackPressed();

@@ -23,11 +23,12 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.core.geometry.Unit;
 import com.esri.core.io.UserCredentials;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
 
 public class PinMarkerActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -40,9 +41,9 @@ public class PinMarkerActivity extends AppCompatActivity implements OnStatusChan
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pinmarker);
 
-        // Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        //todo Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
+        //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -52,15 +53,17 @@ public class PinMarkerActivity extends AppCompatActivity implements OnStatusChan
         ldm.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
 
         //Add map and current location
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
+                    // TODO: Insert referrer
+                    String referrer = "geotalent_dmd.nostramap.com";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -74,7 +77,7 @@ public class PinMarkerActivity extends AppCompatActivity implements OnStatusChan
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(PinMarkerActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });

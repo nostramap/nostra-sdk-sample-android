@@ -2,12 +2,17 @@ package com.nostra.android.sample.routesample;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import static com.nostra.android.sample.routesample.R.drawable.ic_directions_bike_48px;
+import static com.nostra.android.sample.routesample.R.drawable.ic_directions_car_48px;
+import static com.nostra.android.sample.routesample.R.drawable.ic_directions_walk_48px;
 
 class VehicleAdapter extends BaseAdapter {
     private Context mContext;
@@ -41,10 +46,10 @@ class VehicleAdapter extends BaseAdapter {
         txvVehicle.setText(mVehicle[position]);
 
         Drawable drawableVehicle[] = new Drawable[4];
-        drawableVehicle[0] = mContext.getResources().getDrawable(R.drawable.ic_directions_car_48px);
-        drawableVehicle[1] = mContext.getResources().getDrawable(R.drawable.ic_directions_bike_48px);
-        drawableVehicle[2] = mContext.getResources().getDrawable(R.drawable.ic_directions_bike_48px);
-        drawableVehicle[3] = mContext.getResources().getDrawable(R.drawable.ic_directions_walk_48px);
+        drawableVehicle[0] = ContextCompat.getDrawable(parent.getContext(),ic_directions_car_48px);
+        drawableVehicle[1] = ContextCompat.getDrawable(parent.getContext(),ic_directions_bike_48px);
+        drawableVehicle[2] = ContextCompat.getDrawable(parent.getContext(),ic_directions_bike_48px);
+        drawableVehicle[3] = ContextCompat.getDrawable(parent.getContext(),ic_directions_walk_48px);
 
         if (position == 0) {
             icon.setImageDrawable(drawableVehicle[0]);
