@@ -22,11 +22,15 @@ public class SearchActivity extends AppCompatActivity {
 
         TabHost.TabSpec spec;
         Intent activity_tab1 = new Intent().setClass(this, KeywordActivity.class);
-        spec = tabHostSearch.newTabSpec("Tab1").setIndicator("Keyword").setContent(activity_tab1);
+        spec = tabHostSearch.newTabSpec("Tab1")
+                .setIndicator("Keyword")
+                .setContent(activity_tab1);
         tabHostSearch.addTab(spec);
 
         Intent activity_tab2 = new Intent().setClass(this, AttributeActivity.class);
-        spec = tabHostSearch.newTabSpec("Tab2").setIndicator("Attribute").setContent(activity_tab2);
+        spec = tabHostSearch.newTabSpec("Tab2")
+                .setIndicator("Attribute")
+                .setContent(activity_tab2);
         tabHostSearch.addTab(spec);
     }
 

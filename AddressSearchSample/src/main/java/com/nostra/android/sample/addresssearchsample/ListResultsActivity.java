@@ -11,7 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
-import th.co.nostrasdk.Result.NTAddressSearchResult;
+import th.co.nostrasdk.search.address.NTAddressSearchResult;
 
 public class ListResultsActivity extends Activity {
     private Parcelable[] results;
@@ -32,36 +32,36 @@ public class ListResultsActivity extends Activity {
                 StringBuilder sb = new StringBuilder();
                 String houseNo = result.getHouseNo();
                 String moo = result.getMoo();
-                String soiL = result.getSoi_L();
-                String roadL = result.getRoad_L();
-                String adminLevel1L = result.getAdminLevel1_L();
-                String adminLevel2L = result.getAdminLevel2_L();
-                String adminLevel3L = result.getAdminLevel3_L();
+                String soiL = result.getLocalSoiName();
+                String roadL = result.getAdminLevel4().getLocalName();
+                String adminLevel1L = result.getAdminLevel1().getLocalName();
+                String adminLevel2L = result.getAdminLevel2().getLocalName();
+                String adminLevel3L = result.getAdminLevel3().getLocalName();
                 String postcode = result.getPostcode();
 
                 if (!TextUtils.isEmpty(houseNo)) {
                     sb.append(houseNo);
                 }
                 if (!TextUtils.isEmpty(moo)) {
-                    sb.append("หมู่ " + moo + " ");
+                    sb.append("หมู่ ").append(moo).append(" ");
                 }
                 if (!TextUtils.isEmpty(soiL)) {
-                    sb.append("ซอย " + soiL + " ");
+                    sb.append("ซอย ").append(soiL).append(" ");
                 }
                 if (!TextUtils.isEmpty(roadL)) {
-                    sb.append("ถนน " + roadL + " ");
+                    sb.append("ถนน ").append(roadL).append(" ");
                 }
                 if (!TextUtils.isEmpty(adminLevel3L)) {
-                    sb.append("ตำบล " + adminLevel3L + " ");
+                    sb.append("ตำบล ").append(adminLevel3L).append(" ");
                 }
                 if (!TextUtils.isEmpty(adminLevel2L)) {
-                    sb.append("อำเภอ " + adminLevel2L + " ");
+                    sb.append("อำเภอ ").append(adminLevel2L).append(" ");
                 }
                 if (!TextUtils.isEmpty(adminLevel1L)) {
-                    sb.append("จังหวัด " + adminLevel1L + " ");
+                    sb.append("จังหวัด ").append(adminLevel1L).append(" ");
                 }
                 if (!TextUtils.isEmpty(postcode)) {
-                    sb.append("รหัสไปรษณี " + postcode);
+                    sb.append("รหัสไปรษณี ").append(postcode);
                 }
                 arrAddress[i] = sb.toString();
             }
@@ -78,18 +78,18 @@ public class ListResultsActivity extends Activity {
     AdapterView.OnItemClickListener addressListItemClick = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            Intent intent = new Intent(ListResultsActivity.this, MapActivity.class);
             NTAddressSearchResult result = (NTAddressSearchResult) results[position];
-            intent.putExtra("lat", result.getLat());
-            intent.putExtra("lon", result.getLon());
-            intent.putExtra("houseNo", result.getHouseNo());
-            intent.putExtra("moo", result.getMoo());
-            intent.putExtra("soiL", result.getSoi_L());
-            intent.putExtra("roadL", result.getRoad_L());
-            intent.putExtra("adminLevel1L", result.getAdminLevel1_L());
-            intent.putExtra("adminLevel2L", result.getAdminLevel2_L());
-            intent.putExtra("adminLevel3L", result.getAdminLevel3_L());
-            intent.putExtra("postcode", result.getPostcode());
+            Intent intent = new Intent(ListResultsActivity.this, MapActivity.class)
+                    .putExtra("lat", result.getPoint().getY())
+                    .putExtra("lon", result.getPoint().getX())
+                    .putExtra("houseNo", result.getHouseNo())
+                    .putExtra("moo", result.getMoo())
+                    .putExtra("soiL", result.getLocalSoiName())
+                    .putExtra("roadL", result.getAdminLevel4().getLocalName())
+                    .putExtra("adminLevel1L", result.getAdminLevel1().getLocalName())
+                    .putExtra("adminLevel2L", result.getAdminLevel2().getLocalName())
+                    .putExtra("adminLevel3L", result.getAdminLevel3().getLocalName())
+                    .putExtra("postcode", result.getPostcode());
             startActivity(intent);
         }
     };

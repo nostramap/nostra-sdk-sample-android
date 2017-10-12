@@ -36,12 +36,13 @@ import com.esri.core.symbol.PictureMarkerSymbol;
 import java.util.HashMap;
 import java.util.Map;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Parameter.Class.NTPoint;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTPoint;
 
 public class MapActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -66,9 +67,9 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        // Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -110,8 +111,7 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
             }
 
         });
-
-        //Zoom to Current Location
+        // Zoom to Current Location
         final ImageView imvCurrentLocation = (ImageView) findViewById(R.id.imvCurrentLocation);
         imvCurrentLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -127,15 +127,18 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
 
     private void initializeMap() {
         // Add map and current location
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
-                ntMapResults = result.getResults();
+            public void onResponse(NTMapPermissionResultSet resultSet) {
+                ntMapResults = resultSet.getResults();
                 NTMapPermissionResult mapPermission = getThailandBasemap();
                 if (mapPermission != null) {
-                    String url = mapPermission.getServiceUrl_L();
-                    String token = mapPermission.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo localInfo = mapPermission.getLocalService();
+
+                    String url = localInfo.getServiceUrl();
+                    String token = localInfo.getServiceToken();
+                    // TODO: Insert referrer
+                    String referrer = "geotalent_dmd.nostramap.com";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -144,7 +147,7 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
                     ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
                     mapView.addLayer(layer);
 
-                    NTPoint ntPoint = mapPermission.getDefaultZoom();
+                    NTPoint ntPoint = mapPermission.getDefaultLocation();
                     if (ntPoint != null) {
                         pointMap = new Point(ntPoint.getX(), ntPoint.getY());
                         String decimalDegrees = CoordinateConversion.pointToDecimalDegrees(
@@ -159,7 +162,7 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(MapActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -263,25 +266,25 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
             sb.append(houseNo);
         }
         if (!TextUtils.isEmpty(moo)) {
-            sb.append("หมู่ " + moo + " ");
+            sb.append("หมู่ ").append(moo).append(" ");
         }
         if (!TextUtils.isEmpty(soiL)) {
-            sb.append("ซอย " + soiL + " ");
+            sb.append("ซอย ").append(soiL).append(" ");
         }
         if (!TextUtils.isEmpty(roadL)) {
-            sb.append("ถนน " + roadL + " ");
+            sb.append("ถนน ").append(roadL).append(" ");
         }
         if (!TextUtils.isEmpty(adminLevel3L)) {
-            sb.append("ตำบล " + adminLevel3L + " ");
+            sb.append("ตำบล ").append(adminLevel3L).append(" ");
         }
         if (!TextUtils.isEmpty(adminLevel2L)) {
-            sb.append("อำเภอ " + adminLevel2L + " ");
+            sb.append("อำเภอ ").append(adminLevel2L).append(" ");
         }
         if (!TextUtils.isEmpty(adminLevel1L)) {
-            sb.append("จังหวัด " + adminLevel1L + " ");
+            sb.append("จังหวัด ").append(adminLevel1L).append(" ");
         }
         if (!TextUtils.isEmpty(postcode)) {
-            sb.append("รหัสไปรษณี " + postcode);
+            sb.append("รหัสไปรษณี ").append(postcode);
         }
         Drawable pin = ResourcesCompat.getDrawable(getResources(),
                 R.drawable.pin_markonmap, getTheme());

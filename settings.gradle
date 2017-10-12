@@ -1,6 +1,6 @@
 include ':AddressSearchSample',
 //        ':MapSample',
-//        ':ServiceAreaSample',
+        ':ServiceAreaSample',
 //        ':RouteSample',
 //        ':ClosestFacilitySample',
 //        ':MultiModalSample',
