@@ -82,8 +82,8 @@ public class AdminPolyActivity extends AppCompatActivity {
         // Setting parameter for all province
         NTAdministrative administrative = new NTAdministrative("");
         NTAdministrativeParameter param = new NTAdministrativeParameter();
-        param.setAdminLevel1(administrative);// TODO: 10/12/2017 set " " ควรลบออกไปเลยมั้ยครับ
-        param.setAdminLevel2(administrative);// TODO: 10/12/2017 set " " ควรลบออกไปเลยมั้ยครับ
+        param.setAdminLevel1(administrative);
+        param.setAdminLevel2(administrative);
         param.setCountry(NTCountry.THAILAND);
         param.setSortBy(NTAdministrativeSorting.SORT_BY_CODE);
 
@@ -116,7 +116,7 @@ public class AdminPolyActivity extends AppCompatActivity {
     private void displayDistrict(String province) {
         NTAdministrative administrative = new NTAdministrative(province.trim());
         NTAdministrativeParameter adminParam = new NTAdministrativeParameter();
-        adminParam.setAdminLevel1(administrative);// TODO: 10/12/2017  set ค่าของ province
+        adminParam.setAdminLevel1(administrative);
         adminParam.setCountry(NTCountry.THAILAND);
         adminParam.setSortBy(NTAdministrativeSorting.SORT_BY_CODE);
 

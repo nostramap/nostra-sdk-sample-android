@@ -2,6 +2,7 @@ package com.nostra.android.sample.multimodalsample;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,15 +25,15 @@ class TravelAdapter extends BaseAdapter {
         itemChecked = new boolean[strTravel.length];
         mInflater = LayoutInflater.from(context);
         drawableVehicle = new Drawable[strTravel.length];
-        drawableVehicle[0] = context.getResources().getDrawable(R.drawable.ic_local_airport_black_24dp);
-        drawableVehicle[1] = context.getResources().getDrawable(R.drawable.ic_directions_bus_black_24dp);
-        drawableVehicle[2] = context.getResources().getDrawable(R.drawable.ic_directions_subway_black_24dp);
-        drawableVehicle[3] = context.getResources().getDrawable(R.drawable.ic_directions_subway_black_24dp);
-        drawableVehicle[4] = context.getResources().getDrawable(R.drawable.ic_directions_bus_black_24dp);
-        drawableVehicle[5] = context.getResources().getDrawable(R.drawable.ic_directions_subway_black_24dp);
-        drawableVehicle[6] = context.getResources().getDrawable(R.drawable.ic_directions_railway_black_24dp);
-        drawableVehicle[7] = context.getResources().getDrawable(R.drawable.ic_directions_boat_black_24dp);
-        drawableVehicle[8] = context.getResources().getDrawable(R.drawable.ic_directions_bus_black_24dp);
+        drawableVehicle[0] = ContextCompat.getDrawable(context,R.drawable.ic_local_airport_black_24dp);
+        drawableVehicle[1] = ContextCompat.getDrawable(context,R.drawable.ic_directions_bus_black_24dp);
+        drawableVehicle[2] = ContextCompat.getDrawable(context,R.drawable.ic_directions_subway_black_24dp);
+        drawableVehicle[3] = ContextCompat.getDrawable(context,R.drawable.ic_directions_subway_black_24dp);
+        drawableVehicle[4] = ContextCompat.getDrawable(context,R.drawable.ic_directions_bus_black_24dp);
+        drawableVehicle[5] = ContextCompat.getDrawable(context,R.drawable.ic_directions_subway_black_24dp);
+        drawableVehicle[6] = ContextCompat.getDrawable(context,R.drawable.ic_directions_railway_black_24dp);
+        drawableVehicle[7] = ContextCompat.getDrawable(context,R.drawable.ic_directions_boat_black_24dp);
+        drawableVehicle[8] = ContextCompat.getDrawable(context,R.drawable.ic_directions_bus_black_24dp);
     }
 
     ArrayList<String> getCheck(){

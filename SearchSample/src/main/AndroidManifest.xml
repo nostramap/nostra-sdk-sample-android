@@ -31,5 +31,6 @@
         <activity android:name=".LocalCategoriesActivity" />
         <activity android:name=".ListResultsActivity" />
         <activity android:name=".PinMarkerActivity" />
+        <activity android:name=".ListResultsActivityNew"/>
     </application>
 </manifest>

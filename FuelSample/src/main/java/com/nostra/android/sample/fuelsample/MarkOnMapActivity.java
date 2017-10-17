@@ -77,7 +77,7 @@ public class MarkOnMapActivity extends AppCompatActivity implements OnStatusChan
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
                     // TODO: Insert referrer
-                    String referrer = "Referrer";
+                    String referrer = "geotalent_dmd.nostramap.com";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);

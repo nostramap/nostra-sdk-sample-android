@@ -47,7 +47,6 @@ import java.util.Locale;
 
 import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
-import th.co.nostrasdk.common.NTCountry;
 import th.co.nostrasdk.common.NTImpedanceMode;
 import th.co.nostrasdk.common.NTLanguage;
 import th.co.nostrasdk.common.NTTravelMode;
@@ -173,22 +172,22 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (position == 0) {
                     positionGo = position;
-                    btnVehicle.setText("CAR");
+                    btnVehicle.setText(R.string.car);
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
                 } else if (position == 1) {
                     positionGo = position;
-                    btnVehicle.setText("MOTORCYCLE");
+                    btnVehicle.setText(R.string.motorcycle);
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
                 } else if (position == 2) {
                     positionGo = position;
-                    btnVehicle.setText("BIKE");
+                    btnVehicle.setText(R.string.bike);
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
                 } else if (position == 3) {
                     positionGo = position;
-                    btnVehicle.setText("WALK");
+                    btnVehicle.setText(R.string.walk);
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 }
             }

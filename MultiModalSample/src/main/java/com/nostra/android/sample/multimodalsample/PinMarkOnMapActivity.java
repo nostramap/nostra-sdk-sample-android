@@ -98,7 +98,7 @@ public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusC
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy); // to run network operation on main thread
         // TODO: 10/12/2017  API_KEY
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
+        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
         NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
             public void onResponse(NTMapPermissionResultSet result) {
@@ -108,7 +108,7 @@ public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusC
                     NTMapServiceInfo info = map.getLocalService();
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    String referrer = "geotalent_dmd.nostramap.com";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);

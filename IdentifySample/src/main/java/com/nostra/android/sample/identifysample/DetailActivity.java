@@ -13,6 +13,7 @@ import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.query.extra.NTAttraction;
 import th.co.nostrasdk.query.extra.NTEntertainmentService;
 import th.co.nostrasdk.query.extra.NTExtraContentFood;
+import th.co.nostrasdk.query.extra.NTExtraContentHotel;
 import th.co.nostrasdk.query.extra.NTExtraContentParameter;
 import th.co.nostrasdk.query.extra.NTExtraContentResult;
 import th.co.nostrasdk.query.extra.NTExtraContentService;
@@ -21,7 +22,6 @@ import th.co.nostrasdk.query.extra.NTFoodType;
 
 public class DetailActivity extends AppCompatActivity {
 
-    private ImageButton imbBack;
     private ImageView imvLocation;
     private TextView txvNameL;
     private TextView txvInfo;
@@ -34,7 +34,7 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        imbBack = (ImageButton) findViewById(R.id.imbBack);
+        ImageButton imbBack = (ImageButton) findViewById(R.id.imbBack);
         imvLocation = (ImageView) findViewById(R.id.imvLocation);
         txvNameL = (TextView) findViewById(R.id.txvNameL);
         txvInfo = (TextView) findViewById(R.id.txvInfo);
@@ -51,24 +51,37 @@ public class DetailActivity extends AppCompatActivity {
                     if (result != null) {
                         NTExtraContentTravel travel = result.getTravel();
                         NTExtraContentFood food = result.getFood();
-                        // TODO: 10/12/2017 please recheck again.
+                        NTExtraContentHotel hotel = result.getHotel();
                         if (travel != null) {
-                            txvNameL.setText(travel.getPlaceZone());
+                            String[] picture = travel.getPictureUrls();
                             NTAttraction[] attractions = travel.getAttractions();
+
+                            txvNameL.setText(travel.getPlaceZone());
                             txvInfo.setText(attractions[0].getLocalAttraction());
                             txvDesc.setText(travel.getLocalHistory());
-                            String[] picture = travel.getPictureUrls();
-                            loadPicture(picture[0]);
+                            if (picture.length > 0)
+                                loadPicture(picture[0]);
 
                         } else if (food != null) {
-                            txvNameL.setText(food.getPlaceZone());
                             NTFoodType[] type = food.getFoodTypes();
-                            txvInfo.setText(type[0].getLocalType());
                             NTEntertainmentService entertainmentService = food.getEntertainmentService();
-                            txvDesc.setText(entertainmentService.getLocalService());
                             String[] picture = food.getPictureUrls();
-                            loadPicture(picture[0]);
 
+                            txvNameL.setText(food.getPlaceZone());
+                            txvInfo.setText(type[0].getLocalType());
+                            txvDesc.setText(entertainmentService.getLocalService());
+                            if (picture.length > 0)
+                                loadPicture(picture[0]);
+
+                        } else if (hotel != null) {
+                            String[] sportsAndRecreation = hotel.getSportsAndRecreations();
+                            String[] picture = hotel.getPictureUrls();
+
+                            txvNameL.setText(hotel.getName());
+                            txvInfo.setText(hotel.getHotelType());
+                            txvDesc.setText(sportsAndRecreation[0]);
+                            if (picture.length > 0)
+                                loadPicture(picture[0]);
                         } else {
                             Toast.makeText(DetailActivity.this, "No data for given nostraId.",
                                     Toast.LENGTH_SHORT).show();

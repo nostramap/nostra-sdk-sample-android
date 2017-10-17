@@ -11,7 +11,7 @@ import android.widget.TextView;
 class DirectionAdapter extends BaseAdapter {
     private String[] strName;
     private int[] Length;
-    LayoutInflater mInflater;
+    private LayoutInflater mInflater;
 
     DirectionAdapter(Context context, String[] strName, int[] Length) {
         this.strName = strName;

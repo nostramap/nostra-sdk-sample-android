@@ -9,6 +9,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -80,7 +81,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         setContentView(R.layout.activity_dynamic_map_content);
 
         //todo Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
+        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
         //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
@@ -176,7 +177,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
                     // TODO: Insert referrer
-                    String referrer = "Referrer";
+                    String referrer = "geotalent_dmd.nostramap.com";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -255,10 +256,11 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         frlContainer.setVisibility(View.GONE);
         imvBack.setVisibility(View.VISIBLE);
         imvLayer.setVisibility(View.GONE);
-        txvHeader.setText("DISPLAY ON MAP");
+        txvHeader.setText(R.string.display_on_map);
         NTPoint ladLon = dmcResult.getPoint();
         Point p = GeometryEngine.project(ladLon.getX(), ladLon.getY(), outSR);
-        PictureMarkerSymbol pin = new PictureMarkerSymbol(getResources().getDrawable(R.drawable.pin_markonmap));
+        PictureMarkerSymbol pin = new PictureMarkerSymbol(ContextCompat
+                .getDrawable(this,R.drawable.pin_markonmap));
 
         mGraphicsLayer.addGraphic(new Graphic(p, pin));
         mapView.zoomTo(p, 11);
@@ -267,10 +269,9 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
     void createShareUrl(NTDynamicContentResult dmcResult) {
         curtainView.setVisibility(View.VISIBLE);
         rllShare.setVisibility(View.VISIBLE);
-
+        // TODO: 10/16/2017 Required parameter เปลี่ยน 
         NTShortLinkParameter param = new NTShortLinkParameter(dmcResult.getLocalName());
-//        param.setDescription(dmcResult.getAddress_L()); // TODO: 10/12/2017 เอาออกเลยมั้ยครับ
-//        param.setLinkType(NTShortLinkType.SEARCH.);// TODO: 10/12/2017 ไม่เข้าใจอ่าครับ เอาออกมัยครับ
+        param.setLocationDescription(dmcResult.getLocalAddress());
         param.setLanguage(NTLanguage.LOCAL);
         param.setLevel(11);
         param.setMapType(NTMapType.STREET_MAP);
@@ -313,7 +314,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
             drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         } else {
             if (imvBack.getVisibility() == View.VISIBLE) {
-                txvHeader.setText("DYNAMIC MAP CONTENT");
+                txvHeader.setText(R.string.dynamic_map_content);
                 imvLayer.setVisibility(View.VISIBLE);
                 imvBack.setVisibility(View.GONE);
                 frlContainer.setVisibility(View.VISIBLE);

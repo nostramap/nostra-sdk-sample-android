@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -51,6 +52,7 @@ import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
 import th.co.nostrasdk.network.NTLocation;
 import th.co.nostrasdk.network.transport.NTMultiModalDirection;
+import th.co.nostrasdk.network.transport.NTMultiModalRoute;
 import th.co.nostrasdk.network.transport.NTMultiModalTransportParameter;
 import th.co.nostrasdk.network.transport.NTMultiModalTransportResult;
 import th.co.nostrasdk.network.transport.NTMultiModalTransportService;
@@ -104,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         setContentView(R.layout.activity_multimodal);
 
         //todo Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
+        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
         //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
@@ -143,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
                     // TODO: Insert referrer
-                    String referrer = "Referrer";
+                    String referrer = "geotalent_dmd.nostramap.com";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -215,12 +217,12 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         if (requestCode == toLocation && resultCode == RESULT_OK) {
             toLocationCenterX = (float) data.getExtras().getDouble("CenterX");
             toLocationCenterY = (float) data.getExtras().getDouble("CenterY");
-            edtToLocation.setText(" To_Location");
+            edtToLocation.setText(R.string.to_location);
             pinMarkOnMap();
         } else if (requestCode == fromLocation && resultCode == RESULT_OK) {
             fromLocationCenterX = (float) data.getExtras().getDouble("CenterX");
             fromLocationCenterY = (float) data.getExtras().getDouble("CenterY");
-            edtFromLocation.setText(" From_Location");
+            edtFromLocation.setText(R.string.from_location);
             pinMarkOnMap();
         } else if (requestCode == travelCode && resultCode == RESULT_OK) {
             resultTravel = data.getExtras().getStringArrayList("resultTravel");
@@ -301,7 +303,11 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                     @Override
                     public void onResponse(NTMultiModalTransportResult result) {
                         try {
-                            directions = result.getMinute().getDirections();
+                            NTMultiModalRoute minute = result.getMinute();
+                            // TODO: 10/16/2017 add check null ได้มั้ย
+                            if (minute != null) {
+                                directions = minute.getDirections();
+                            }
                             pinGraphicToLocation.removeAll();
                             pinGraphicFromLocation.removeAll();
                             pinGraphicLayer.removeAll();
@@ -313,34 +319,45 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                                 mapGeometry = GeometryEngine.jsonToGeometry(parser);
                                 polyline = (Polyline) GeometryEngine.project(mapGeometry.getGeometry(), INPUT_SR, OUTPUT_SR);
                                 lineGraphicLayer.addGraphic(new Graphic(polyline, new SimpleLineSymbol
-                                        (getResources().getColor(R.color.colorGreen), 5)));
+                                        (ContextCompat.getColor(getApplicationContext(), R.color.colorGreen), 5)));
 
                                 SimpleMarkerSymbol SymbolCircle = new SimpleMarkerSymbol
-                                        (getResources().getColor(R.color.colorLightGreen), 10,
+                                        (ContextCompat.getColor(getApplicationContext(), R.color.colorLightGreen), 10,
                                                 SimpleMarkerSymbol.STYLE.CIRCLE);
                                 List<double[]> PathCircle = directions[i].getPath();
-                                double[] Circle = PathCircle.get(0);
-                                Point point = GeometryEngine.project(Circle[0], Circle[1], OUTPUT_SR);
-                                Graphic pointGraphic = new Graphic(point, SymbolCircle);
-                                SymbolCircleGraphicsLayer.addGraphic(pointGraphic);
+                                // TODO: 10/16/2017 add checl null 
+                                if (PathCircle != null) {
+                                    double[] Circle = PathCircle.get(0);
+                                    Point point = GeometryEngine.project(Circle[0], Circle[1], OUTPUT_SR);
+                                    Graphic pointGraphic = new Graphic(point, SymbolCircle);
+                                    SymbolCircleGraphicsLayer.addGraphic(pointGraphic);
+                                }
+
                             }
                             PictureMarkerSymbol pinFinish = new PictureMarkerSymbol(MainActivity.this,
-                                    getResources().getDrawable(R.drawable.flag));
+                                    ContextCompat.getDrawable(getApplicationContext(), R.drawable.flag));
                             List<double[]> Path = directions[0].getPath();
-                            double[] firstPoint = Path.get(0);
-                            Point point = GeometryEngine.project(firstPoint[0], firstPoint[1], OUTPUT_SR);
-                            Graphic graphicPintoLocation = new Graphic(point, pinFinish);
-
-                            PictureMarkerSymbol pinStart = new PictureMarkerSymbol(MainActivity.this,
-                                    getResources().getDrawable(R.drawable.flag_des));
                             List<double[]> Path2 = directions[directions.length - 1].getPath();
-                            double[] lastPoint = Path2.get(Path2.size() - 1);
-                            Point point2 = GeometryEngine.project(lastPoint[0], lastPoint[1], OUTPUT_SR);
-                            Graphic graphicPinFromLocation = new Graphic(point2, pinStart);
+                            // TODO: 10/16/2017 add checl null 
+                            if (Path != null && Path2 != null) {
+                                double[] firstPoint = Path.get(0);
+                                Point point = GeometryEngine.project(firstPoint[0], firstPoint[1], OUTPUT_SR);
+                                Graphic graphicPintoLocation = new Graphic(point, pinFinish);
 
-                            pinGraphicLayer.addGraphics(new Graphic[]{graphicPintoLocation, graphicPinFromLocation});
+                                PictureMarkerSymbol pinStart = new PictureMarkerSymbol(MainActivity.this,
+                                        ContextCompat.getDrawable(getApplicationContext(), R.drawable.flag_des));
+                                double[] lastPoint = Path2.get(Path2.size() - 1);
+                                Point point2 = GeometryEngine.project(lastPoint[0], lastPoint[1], OUTPUT_SR);
+                                Graphic graphicPinFromLocation = new Graphic(point2, pinStart);
+
+                                pinGraphicLayer.addGraphics(new Graphic[]{graphicPintoLocation, graphicPinFromLocation});
+                            }
                             relativeLayout.setVisibility(View.VISIBLE);
-                            totalMeter = result.getMeter().getLength();
+                            // TODO: 10/16/2017 add check null 
+                            NTMultiModalRoute meterResult = result.getMeter();
+                            if (meterResult!=null){
+                                totalMeter = meterResult.getLength();
+                            }
                             totalMinute = result.getMinute().getTime();
                             int meter = (int) totalMeter;
                             txvMinMeter.setText(String.valueOf(df.format(totalMinute) + "Min" + "(" +
@@ -406,7 +423,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         if (toLocationCenterX != 0 && toLocationCenterY != 0) {
             pointToLocation = new Point(toLocationCenterX, toLocationCenterY);
             PictureMarkerSymbol pinMarkToLocation = new PictureMarkerSymbol(MainActivity.this,
-                    getResources().getDrawable(R.drawable.flag));
+                    ContextCompat.getDrawable(this,R.drawable.flag));
             Graphic graphic = new Graphic(pointToLocation, pinMarkToLocation);
             pinGraphicToLocation.addGraphic(graphic);
             mapView.addLayer(pinGraphicToLocation);
@@ -418,7 +435,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         if (fromLocationCenterX != 0 && fromLocationCenterY != 0) {
             pointFromLocation = new Point(fromLocationCenterX, fromLocationCenterY);
             PictureMarkerSymbol pinMarkToLocation = new PictureMarkerSymbol(MainActivity.this,
-                    getResources().getDrawable(R.drawable.flag_des));
+                    ContextCompat.getDrawable(this,R.drawable.flag_des));
             Graphic graphic = new Graphic(pointFromLocation, pinMarkToLocation);
             pinGraphicFromLocation.addGraphic(graphic);
             mapView.addLayer(pinGraphicFromLocation);

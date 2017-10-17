@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,7 +38,6 @@ import java.util.Map;
 
 import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
-import th.co.nostrasdk.common.NTAdministrative;
 import th.co.nostrasdk.map.NTMapPermissionResult;
 import th.co.nostrasdk.map.NTMapPermissionResultSet;
 import th.co.nostrasdk.map.NTMapPermissionService;
@@ -49,6 +49,7 @@ import th.co.nostrasdk.query.poi.NTIdentifyService;
 
 public class IdentifyActivity extends AppCompatActivity
         implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
+
     private MapView mapView;
     private NTMapPermissionResult[] ntMapResults;
     private Point point;
@@ -64,7 +65,7 @@ public class IdentifyActivity extends AppCompatActivity
         setContentView(R.layout.activity_identify);
 
         //todo Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
+        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
         //todo Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
@@ -78,7 +79,7 @@ public class IdentifyActivity extends AppCompatActivity
         imvCurrentLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mapView.centerAt(mapPoint,true);
+                mapView.centerAt(mapPoint, true);
             }
         });
         initialMap();
@@ -117,12 +118,12 @@ public class IdentifyActivity extends AppCompatActivity
                 double locationY = location.getLatitude();
                 double locationX = location.getLongitude();
                 Point wgsPoint = new Point(locationX, locationY);
-                mapPoint = (Point) GeometryEngine.project(wgsPoint,SpatialReference.create(4326),
+                mapPoint = (Point) GeometryEngine.project(wgsPoint, SpatialReference.create(4326),
                         mapView.getSpatialReference());
 
                 Unit mapUnit = mapView.getSpatialReference().getUnit();
                 double zoomWidth = Unit.convertUnits(5, Unit.create(LinearUnit.Code.MILE_US), mapUnit);
-                Envelope zoomExtent = new Envelope(mapPoint,zoomWidth, zoomWidth);
+                Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
                 mapView.setExtent(zoomExtent);
             }
         }
@@ -152,7 +153,7 @@ public class IdentifyActivity extends AppCompatActivity
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
                     // TODO: Insert referrer
-                    String referrer = "referrer";    
+                    String referrer = "geotalent_dmd.nostramap.com";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -166,19 +167,17 @@ public class IdentifyActivity extends AppCompatActivity
                         lat = ntPoint.getY();
                         lon = ntPoint.getX();
                         point = new Point(lat, lon);
-                        String decimalDegrees = CoordinateConversion.pointToDecimalDegrees(point,
-                                SpatialReference.create(SpatialReference.WKID_WGS84), 7);
-                        point = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
+                        Point wmPoint = (Point) GeometryEngine.project(point,
+                                SpatialReference.create(SpatialReference.WKID_WGS84),
                                 SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE));
-                        mapView.addLayer(layer);
-                        mapView.centerAt(point, true);
+                        mapView.centerAt(wmPoint, true);
                         mapView.addLayer(graphicsLayerPin);
                     }
                 }
             }
 
             @Override
-            public void onError(String errorMessage,int statusCode) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(IdentifyActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -195,12 +194,12 @@ public class IdentifyActivity extends AppCompatActivity
     }
 
     //Set content in callout
-    private View loadView(String name,
-                          final String nostraId,
-                          String adminLevel4L,
-                          String adminLevel3L,
-                          String adminLevel2L,
-                          String adminLevel1L) {
+    private View getCalloutView(String name,
+                                final String nostraId,
+                                String adminLevel4L,
+                                String adminLevel3L,
+                                String adminLevel2L,
+                                String adminLevel1L) {
         View view = LayoutInflater.from(IdentifyActivity.this).inflate(R.layout.callout, null);
         TextView txvNameL = (TextView) view.findViewById(R.id.txvNameL);
         TextView txvLocation = (TextView) view.findViewById(R.id.txvLocation);
@@ -208,7 +207,7 @@ public class IdentifyActivity extends AppCompatActivity
         Button btnDetail = (Button) view.findViewById(R.id.btnDetail);
 
         txvNameL.setText(name);
-        txvLocation.setText(adminLevel4L + " " + adminLevel3L + " "+ "\n" + adminLevel2L + " " + adminLevel1L);
+        txvLocation.setText(adminLevel4L + " " + adminLevel3L + " " + "\n" + adminLevel2L + " " + adminLevel1L);
         imvPinOnMap.setImageDrawable(IdentifyActivity.this.getResources().getDrawable(R.drawable.pin_markonmap));
         btnDetail.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -240,27 +239,22 @@ public class IdentifyActivity extends AppCompatActivity
                 final Point wgsPoint = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
                         SpatialReference.create(SpatialReference.WKID_WGS84));
                 PictureMarkerSymbol markerSymbol = new PictureMarkerSymbol(this,
-                        getResources().getDrawable(R.drawable.pin_markonmap));
+                        ContextCompat.getDrawable(this,R.drawable.pin_markonmap));
                 Graphic graphic = new Graphic(point, markerSymbol);
                 final int id = graphicsLayerPin.addGraphic(graphic);
                 // Setting parameter
-                NTPoint pointParam = new NTPoint(wgsPoint.getX(),wgsPoint.getY());
+                NTPoint pointParam = new NTPoint(wgsPoint.getX(), wgsPoint.getY());
                 NTIdentifyParameter param = new NTIdentifyParameter(pointParam);
                 // Call NTIdentifyService and show callout
                 NTIdentifyService.executeAsync(param, new ServiceRequestListener<NTIdentifyResult>() {
                     @Override
                     public void onResponse(NTIdentifyResult result) {
-                        // TODO: 10/12/2017 recheck adain. 
                         String nameL = result.getLocalName();
                         String nostraId = result.getNostraId();
-                        NTAdministrative admin = result.getAdminLevel1();
-                        String adminLevel1L = admin.getLocalName();
-                        admin = result.getAdminLevel2();
-                        String adminLevel2L = admin.getLocalName();
-                        admin = result.getAdminLevel3();
-                        String adminLevel3L = admin.getLocalName();
-                        admin = result.getAdminLevel4();
-                        String adminLevel4L = admin.getLocalName();
+                        String adminLevel1L = result.getAdminLevel1().getLocalName();
+                        String adminLevel2L = result.getAdminLevel2().getLocalName();
+                        String adminLevel3L = result.getAdminLevel3().getLocalName();
+                        String adminLevel4L = result.getAdminLevel4().getLocalName();
 
                         Map<String, Object> attr = new HashMap<>();
                         attr.put("nameL", nameL);
@@ -273,14 +267,14 @@ public class IdentifyActivity extends AppCompatActivity
                         mapCallout = mapView.getCallout();
 
                         // Sets custom content view to Callout
-                        mapCallout.setContent(loadView(nameL, nostraId,
+                        mapCallout.setContent(getCalloutView(nameL, nostraId,
                                 adminLevel4L, adminLevel3L, adminLevel2L, adminLevel1L));
                         mapCallout.setOffsetDp(0, 25);
                         mapCallout.show(point);
                     }
 
                     @Override
-                    public void onError(String error,int statusCode) {
+                    public void onError(String error, int statusCode) {
                         Toast.makeText(IdentifyActivity.this, error, Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -293,10 +287,10 @@ public class IdentifyActivity extends AppCompatActivity
 
     @Override
     public void onSingleTap(float x, float y) {
-        if(mapCallout != null && mapCallout.isShowing()) {
+        if (mapCallout != null && mapCallout.isShowing()) {
             mapCallout.hide();
             graphicsLayerPin.removeAll();
-        }else {
+        } else {
             Toast.makeText(IdentifyActivity.this, "Select location", Toast.LENGTH_SHORT).show();
         }
     }

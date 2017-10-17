@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -214,7 +215,7 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
             pointMap = CoordinateConversion.decimalDegreesToPoint(strPoint,
                     SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE));
             PictureMarkerSymbol symbol = new PictureMarkerSymbol(MapActivity.this,
-                    getResources().getDrawable(R.drawable.pin_markonmap));
+                    ContextCompat.getDrawable(this,R.drawable.pin_markonmap));
 
             Map<String, Object> attr = new HashMap<>();
             attr.put("houseNo", houseNo);

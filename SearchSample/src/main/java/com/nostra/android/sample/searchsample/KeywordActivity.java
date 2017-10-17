@@ -14,6 +14,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.common.NTCountry;
 import th.co.nostrasdk.network.NTPoint;
@@ -63,12 +65,9 @@ public class KeywordActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String search = edtKeyword.getText().toString();
-                String[] categories = new String[] {};
-                String[] localCategories = new String[] {};
                 NTPoint point = new NTPoint(lon,lat);
-                // TODO: 10/12/2017 recheck again.
                 NTLocationSearchParameter param = new NTLocationSearchParameter(
-                        search, categories, localCategories,"","");
+                        search);
                 param.setPoint(point);
                 param.setRadius(1000);
                 param.setCountry(NTCountry.THAILAND);
@@ -78,19 +77,18 @@ public class KeywordActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(NTLocationSearchResultSet result) {
                         NTLocationSearchResult[] results = result.getResults();
-                        String[] list2 = new String[results.length];
-                        // TODO: 10/12/2017 recheck again.
-                        for (int i = 0; i < results.length; i++) {
-                            list2[i] = results[i].getLocalName() + " "
-                                    + results[i].getAdminLevel4().getLocalName() + " "
-                                    + results[i].getAdminLevel3().getLocalName() + " "
-                                    + results[i].getAdminLevel2().getLocalName() + " "
-                                    + results[i].getAdminLevel1().getLocalName();
+                        ArrayList<SearchResult> resultList = new ArrayList<>();
+                        for (NTLocationSearchResult data : results) {
+                            SearchResult searchResult = new SearchResult(data.getLocalName(),
+                                    data.getAdminLevel1().getLocalName(),
+                                    data.getAdminLevel2().getLocalName(),
+                                    data.getAdminLevel3().getLocalName(),
+                                    data.getAdminLevel3().getLocalName(),
+                                    data.getLocationPoint());
+                            resultList.add(searchResult);
                         }
-                        Intent intent = new Intent(KeywordActivity.this, ListResultsActivity.class);
-                        intent.putExtra("autoCompleteSearchResults", list2);
-                        intent.putExtra("lon", lon);
-                        intent.putExtra("lat", lat);
+                        Intent intent = new Intent(KeywordActivity.this, ListResultsActivityNew.class);
+                        intent.putParcelableArrayListExtra("results", resultList);
                         startActivity(intent);
                     }
 

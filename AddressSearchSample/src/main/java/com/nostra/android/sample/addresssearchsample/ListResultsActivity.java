@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
+import th.co.nostrasdk.network.NTPoint;
 import th.co.nostrasdk.search.address.NTAddressSearchResult;
 
 public class ListResultsActivity extends Activity {
@@ -79,9 +80,15 @@ public class ListResultsActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             NTAddressSearchResult result = (NTAddressSearchResult) results[position];
+            // TODO: 10/16/2017 เช็ค result.getPoint ที้ได้มั้ยครับ
+            NTPoint latLon = result.getPoint();
+            if (latLon == null) {
+                return;
+            }
+
             Intent intent = new Intent(ListResultsActivity.this, MapActivity.class)
-                    .putExtra("lat", result.getPoint().getY())
-                    .putExtra("lon", result.getPoint().getX())
+                    .putExtra("lat", latLon.getY())
+                    .putExtra("lon", latLon.getX())
                     .putExtra("houseNo", result.getHouseNo())
                     .putExtra("moo", result.getMoo())
                     .putExtra("soiL", result.getLocalSoiName())
