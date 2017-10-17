@@ -80,10 +80,7 @@ public class AdminPolyActivity extends AppCompatActivity {
 
     private void displayProvince() {
         // Setting parameter for all province
-        NTAdministrative administrative = new NTAdministrative("");
         NTAdministrativeParameter param = new NTAdministrativeParameter();
-        param.setAdminLevel1(administrative);
-        param.setAdminLevel2(administrative);
         param.setCountry(NTCountry.THAILAND);
         param.setSortBy(NTAdministrativeSorting.SORT_BY_CODE);
 
@@ -92,7 +89,7 @@ public class AdminPolyActivity extends AppCompatActivity {
             @Override
             public void onResponse(NTAdministrativeResultSet result) {
                 NTAdministrativeResult[] results = result.getResults();
-                if (results != null && results.length > 0) {
+                if (results.length > 0) {
                     arrNameProvince = new String[results.length];
                     arrCodeProvince = new String[results.length];
                     for (int i = 0; i < results.length; i++) {

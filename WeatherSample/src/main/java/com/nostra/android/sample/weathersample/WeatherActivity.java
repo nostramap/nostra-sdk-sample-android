@@ -84,7 +84,6 @@ public class WeatherActivity extends AppCompatActivity
         txvLocation = (TextView) findViewById(R.id.txvLocation);
         txvWeather = (TextView) findViewById(R.id.txvWeather);
         imvIcon = (ImageView) findViewById(R.id.imvIcon);
-
         bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet_layout));
 
         //Add layer map
@@ -211,7 +210,7 @@ public class WeatherActivity extends AppCompatActivity
             public void onResponse(NTWeatherResult result) {
                 locationName = result.getLocationName();
                 NTWeather[] weathers = result.getWeathers();
-                if (weathers != null && weathers.length > 0) {
+                if (weathers.length > 0) {
                     urlIcon = weathers[0].getIcon();
                     temperature = weathers[0].getTemperature().getAverage();
                     temperatureMin = weathers[0].getTemperature().getMin();

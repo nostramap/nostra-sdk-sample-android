@@ -80,12 +80,7 @@ public class ListResultsActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             NTAddressSearchResult result = (NTAddressSearchResult) results[position];
-            // TODO: 10/16/2017 เช็ค result.getPoint ที้ได้มั้ยครับ
             NTPoint latLon = result.getPoint();
-            if (latLon == null) {
-                return;
-            }
-
             Intent intent = new Intent(ListResultsActivity.this, MapActivity.class)
                     .putExtra("lat", latLon.getY())
                     .putExtra("lon", latLon.getX())

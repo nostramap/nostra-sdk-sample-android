@@ -304,7 +304,6 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                     public void onResponse(NTMultiModalTransportResult result) {
                         try {
                             NTMultiModalRoute minute = result.getMinute();
-                            // TODO: 10/16/2017 add check null ได้มั้ย
                             if (minute != null) {
                                 directions = minute.getDirections();
                             }
@@ -325,7 +324,6 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                                         (ContextCompat.getColor(getApplicationContext(), R.color.colorLightGreen), 10,
                                                 SimpleMarkerSymbol.STYLE.CIRCLE);
                                 List<double[]> PathCircle = directions[i].getPath();
-                                // TODO: 10/16/2017 add checl null 
                                 if (PathCircle != null) {
                                     double[] Circle = PathCircle.get(0);
                                     Point point = GeometryEngine.project(Circle[0], Circle[1], OUTPUT_SR);
@@ -338,7 +336,6 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                                     ContextCompat.getDrawable(getApplicationContext(), R.drawable.flag));
                             List<double[]> Path = directions[0].getPath();
                             List<double[]> Path2 = directions[directions.length - 1].getPath();
-                            // TODO: 10/16/2017 add checl null 
                             if (Path != null && Path2 != null) {
                                 double[] firstPoint = Path.get(0);
                                 Point point = GeometryEngine.project(firstPoint[0], firstPoint[1], OUTPUT_SR);
@@ -353,7 +350,6 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                                 pinGraphicLayer.addGraphics(new Graphic[]{graphicPintoLocation, graphicPinFromLocation});
                             }
                             relativeLayout.setVisibility(View.VISIBLE);
-                            // TODO: 10/16/2017 add check null 
                             NTMultiModalRoute meterResult = result.getMeter();
                             if (meterResult!=null){
                                 totalMeter = meterResult.getLength();
