@@ -29,7 +29,6 @@
         <activity android:name=".KeywordActivity" />
         <activity android:name=".CategoriesActivity" />
         <activity android:name=".LocalCategoriesActivity" />
-        <activity android:name=".ListResultsActivity" />
         <activity android:name=".PinMarkerActivity" />
         <activity android:name=".ListResultsActivityNew"/>
     </application>

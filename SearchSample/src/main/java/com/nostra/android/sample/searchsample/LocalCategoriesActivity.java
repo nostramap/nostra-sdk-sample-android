@@ -2,7 +2,6 @@ package com.nostra.android.sample.searchsample;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -11,7 +10,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.common.NTCountry;
@@ -69,7 +67,7 @@ public class LocalCategoriesActivity extends AppCompatActivity implements Adapte
         String[] localCategory = new String[]{ntCategoryNameResult[position].getLocalCategoryCode()};
         String[] category = new String[]{ntCategoryNameResult[position].getCategoryCode()};
         NTPoint point = new NTPoint(lon, lat);
-        NTLocationSearchParameter param = new NTLocationSearchParameter("สาทร",category,localCategory);
+        NTLocationSearchParameter param = new NTLocationSearchParameter("สาทร", category, localCategory);
         param.setPoint(point);
         param.setNumberOfResult(5);
 

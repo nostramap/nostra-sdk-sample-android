@@ -5,10 +5,6 @@ import android.os.Parcelable;
 
 import th.co.nostrasdk.network.NTPoint;
 
-/**
- * Created by GEOTALENT114 on 10/17/2017.
- */
-
 public class SearchResult implements Parcelable {
     private String localName;
     private String admin1;
@@ -17,7 +13,7 @@ public class SearchResult implements Parcelable {
     private String admin4;
     private NTPoint point;
 
-    public SearchResult(String localName, String admin1, String admin2, String admin3, String admin4, NTPoint point) {
+    SearchResult(String localName, String admin1, String admin2, String admin3, String admin4, NTPoint point) {
         this.localName = localName;
         this.admin1 = admin1;
         this.admin2 = admin2;
@@ -62,27 +58,27 @@ public class SearchResult implements Parcelable {
         dest.writeParcelable(point, flags);
     }
 
-    public String getLocalName() {
+    String getLocalName() {
         return localName;
     }
 
-    public String getAdmin1() {
+    String getAdmin1() {
         return admin1;
     }
 
-    public String getAdmin2() {
+    String getAdmin2() {
         return admin2;
     }
 
-    public String getAdmin3() {
+    String getAdmin3() {
         return admin3;
     }
 
-    public String getAdmin4() {
+    String getAdmin4() {
         return admin4;
     }
 
-    public NTPoint getPoint() {
+    NTPoint getPoint() {
         return point;
     }
 }

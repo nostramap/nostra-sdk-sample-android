@@ -61,9 +61,9 @@ public class CategoriesActivity extends AppCompatActivity implements AdapterView
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        String[] categories = new String[] { ntCategoryResult[position].getCategoryCode() };
+        String[] categories = new String[]{ntCategoryResult[position].getCategoryCode()};
         NTPoint point = new NTPoint(lon, lat);
-        NTLocationSearchParameter param = new NTLocationSearchParameter("สาทร",categories);
+        NTLocationSearchParameter param = new NTLocationSearchParameter("สาทร", categories);
         param.setPoint(point);
         param.setNumberOfResult(5);
 
