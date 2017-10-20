@@ -24,7 +24,6 @@ public class ListResultsActivity extends AppCompatActivity {
     private String codeDistrict;
     private NTFuelResult[] results;
 
-    private ImageButton btnBack;
     private ListView lvFuel;
 
     @Override
@@ -33,7 +32,7 @@ public class ListResultsActivity extends AppCompatActivity {
         setContentView(R.layout.listview_fuel);
 
         lvFuel = (ListView) findViewById(R.id.lvFuel);
-        btnBack = (ImageButton) findViewById(R.id.imbBack);
+        ImageButton btnBack = (ImageButton) findViewById(R.id.imbBack);
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

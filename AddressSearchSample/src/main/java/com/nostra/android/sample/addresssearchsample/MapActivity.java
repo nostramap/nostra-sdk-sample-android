@@ -69,7 +69,7 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
         setContentView(R.layout.activity_map);
 
         // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
+        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
         // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
@@ -138,7 +138,7 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
                     String url = localInfo.getServiceUrl();
                     String token = localInfo.getServiceToken();
                     // TODO: Insert referrer
-                    String referrer = "geotalent_dmd.nostramap.com";
+                    String referrer = "REFERRER";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);

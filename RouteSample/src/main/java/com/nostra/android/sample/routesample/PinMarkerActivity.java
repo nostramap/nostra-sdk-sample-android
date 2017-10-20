@@ -41,11 +41,6 @@ public class PinMarkerActivity extends AppCompatActivity implements OnStatusChan
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pinmarker);
 
-        //todo Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
-        //todo Setting Client ID
-        ArcGISRuntime.setClientId("CLIENT_ID");
-
         mapView = (MapView) findViewById(R.id.mapView);
         mapView.enableWrapAround(true);
 
@@ -63,7 +58,7 @@ public class PinMarkerActivity extends AppCompatActivity implements OnStatusChan
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
                     // TODO: Insert referrer
-                    String referrer = "geotalent_dmd.nostramap.com";
+                    String referrer = "REFERRER";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);

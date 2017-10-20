@@ -15,10 +15,9 @@
             android:id="@+id/imbBack"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="0dp"
             android:background="@null"
-            android:contentDescription="dump"
+            android:contentDescription="@null"
+            android:padding="12dp"
             android:src="@drawable/ic_chevron_left_48px"
             android:textColor="#000000" />
 
@@ -29,16 +28,13 @@
             android:layout_centerVertical="true"
             android:text="Direction"
             android:textColor="#FFFFFF"
-            android:textSize="20dp" />
-
+            android:textSize="20sp" />
     </RelativeLayout>
 
     <ListView
         android:id="@+id/lvDirection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/relativeLayout" />
-
 </RelativeLayout>

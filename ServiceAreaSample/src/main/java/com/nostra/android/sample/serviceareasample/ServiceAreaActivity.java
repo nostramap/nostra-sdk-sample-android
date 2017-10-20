@@ -76,9 +76,9 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service_area);
 
-        //todo Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
-        //todo Setting Client ID
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -179,7 +179,7 @@ public class ServiceAreaActivity extends AppCompatActivity implements OnSingleTa
                 if (map != null) {
                     String url = map.getLocalService().getServiceUrl();
                     String token = map.getLocalService().getServiceToken();
-                    String referrer = "geotalent_dmd.nostramap.com";    // TODO: Insert referrer
+                    String referrer = "REFERRER";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);

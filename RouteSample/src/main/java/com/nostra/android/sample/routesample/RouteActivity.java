@@ -43,6 +43,7 @@ import com.esri.core.symbol.SimpleMarkerSymbol;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 import th.co.nostrasdk.NTSDKEnvironment;
@@ -76,6 +77,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
     private ImageView imvCurrentLocation;
     private ImageButton imbNavigation;
     private ImageButton imbDirection;
+    private ImageButton imbSearch;
 
     private GraphicsLayer lineSymbolGraphicLayer = new GraphicsLayer();
     private GraphicsLayer pinGraphicLayer = new GraphicsLayer();
@@ -102,9 +104,9 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_route);
 
-        //todo Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
-        //todo Setting Client ID
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -118,6 +120,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         edtToLocation = (Button) findViewById(R.id.edtToLocation);
         imbNavigation = (ImageButton) findViewById(R.id.imbNavigation);
         imbDirection = (ImageButton) findViewById(R.id.imbDirection);
+        imbSearch = (ImageButton) findViewById(R.id.imbSearch);
         imvCurrentLocation = (ImageButton) findViewById(R.id.imbCurrentLocation);
         bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomSheet));
 
@@ -144,7 +147,8 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
                     NTMapServiceInfo info = map.getLocalService();
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
-                    String referrer = "geotalent_dmd.nostramap.com";    // TODO: Insert referrer
+                    // TODO: Insert referrer
+                    String referrer = "REFERRER";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -199,6 +203,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         btnVehicle.setOnClickListener(btnVehicleClick);
         imbNavigation.setOnClickListener(btnNavigateClick);
         imbDirection.setOnClickListener(btnDirectionClick);
+        imbSearch.setOnClickListener(btnSearchClick);
         imvCurrentLocation.setOnClickListener(imvCurrentLocationClick);
 
         mapView.setOnSingleTapListener(new OnSingleTapListener() {
@@ -369,6 +374,24 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
                 Intent intent = new Intent(RouteActivity.this, DirectionActivity.class);
                 intent.putExtra("Results_RouteDirections", arrResultRouteDirection);
                 intent.putExtra("ResultLength", arrResultLength);
+                startActivity(intent);
+            }
+        }
+    };
+
+    View.OnClickListener btnSearchClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (ntRouteResult != null && ntRouteResult.getDirections() != null) {
+                NTDirection[] directions = ntRouteResult.getDirections();
+                int size = directions.length;
+
+                ArrayList<NTPoint> pointList = new ArrayList<>(size);
+                for (NTDirection direction : directions) {
+                    pointList.add(direction.getPoint());
+                }
+                Intent intent = new Intent(RouteActivity.this, SearchAlongRouteActivity.class);
+                intent.putExtra("points", pointList);
                 startActivity(intent);
             }
         }

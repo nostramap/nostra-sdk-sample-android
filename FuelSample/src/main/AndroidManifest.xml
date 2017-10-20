@@ -27,7 +27,6 @@
         <activity android:name=".MarkOnMapActivity" />
         <activity android:name=".ListResultsActivity" />
         <activity android:name=".PriceFuelActivity" />
-        <activity android:name=".AdminPolyActivity"></activity>
     </application>
 
 </manifest>

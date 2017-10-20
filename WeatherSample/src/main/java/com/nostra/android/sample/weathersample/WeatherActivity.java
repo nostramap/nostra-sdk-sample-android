@@ -44,6 +44,7 @@ import th.co.nostrasdk.map.NTMapServiceInfo;
 
 public class WeatherActivity extends AppCompatActivity
         implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
+
     private MapView mapView;
     private TextView txvTime;
     private TextView txvAvgTemperature;
@@ -71,9 +72,9 @@ public class WeatherActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
 
-        //todo Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
-        //todo Setting Client ID
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -85,6 +86,7 @@ public class WeatherActivity extends AppCompatActivity
         txvWeather = (TextView) findViewById(R.id.txvWeather);
         imvIcon = (ImageView) findViewById(R.id.imvIcon);
         bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet_layout));
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
         //Add layer map
         NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
@@ -97,7 +99,7 @@ public class WeatherActivity extends AppCompatActivity
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
                     // TODO: Insert referrer
-                    String referrer = "geotalent_dmd.nostramap.com";
+                    String referrer = "REFERRER";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -119,7 +121,7 @@ public class WeatherActivity extends AppCompatActivity
             }
 
             @Override
-            public void onError(String errorMessage,int statusCode) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(WeatherActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -156,8 +158,8 @@ public class WeatherActivity extends AppCompatActivity
                         double locX = loc.getLongitude();
                         Point wgsPoint = new Point(locX, locY);
                         Point mapPoint = (Point) GeometryEngine.project(wgsPoint,
-                                        SpatialReference.create(4326),
-                                        mapView.getSpatialReference());
+                                SpatialReference.create(4326),
+                                mapView.getSpatialReference());
 
                         Unit mapUnit = mapView.getSpatialReference().getUnit();
                         double zoomWidth = Unit.convertUnits(5, Unit.create(LinearUnit.Code.MILE_US), mapUnit);
@@ -188,21 +190,17 @@ public class WeatherActivity extends AppCompatActivity
         if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         } else {
-            finish();
-        }
-
-        if (!mapCallout.isShowing() && bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
-            finish();
+            super.onBackPressed();
         }
     }
 
     @Override
     public boolean onLongPress(float x, float y) {
         point = mapView.toMapPoint(x, y);
-        String decimalDegrees = CoordinateConversion.pointToDecimalDegrees(
-                point, mapView.getSpatialReference(), 7);
-        Point wgsPoint = CoordinateConversion.decimalDegreesToPoint(
-                decimalDegrees, SpatialReference.create(SpatialReference.WKID_WGS84));
+        // Convert WebMercator coordinate to WGS coordinate
+        Point wgsPoint = (Point) GeometryEngine.project(point,
+                SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE),
+                SpatialReference.create(SpatialReference.WKID_WGS84));
 
         NTWeatherParameter parameter = new NTWeatherParameter(wgsPoint.getY(), wgsPoint.getX());
         NTWeatherService.executeAsync(parameter, new ServiceRequestListener<NTWeatherResult>() {
@@ -230,7 +228,7 @@ public class WeatherActivity extends AppCompatActivity
             }
 
             @Override
-            public void onError(String errorMessage,int statusCode) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(WeatherActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });

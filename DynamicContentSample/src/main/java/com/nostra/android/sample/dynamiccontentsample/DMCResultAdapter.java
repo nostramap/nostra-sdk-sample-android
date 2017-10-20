@@ -57,7 +57,6 @@ class DMCResultAdapter extends RecyclerView.Adapter<DMCResultAdapter.ResultViewH
         holder.txvName.setText(result.getLocalName());
         holder.txvAddress.setText(result.getLocalAddress());
         NTPoiInfo additionalInfo = result.getAdditionalInfo();
-        // TODO: 10/16/2017 check null แบบนี้ได้มั้ยครับ
         if (additionalInfo != null) {
             holder.txvAddInfo.setText(additionalInfo.getLocalInfo());
         }

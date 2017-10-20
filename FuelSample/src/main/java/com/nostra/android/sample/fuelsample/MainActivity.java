@@ -18,9 +18,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fuel);
 
-        //todo Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
-        //todo Setting Client ID
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         TabHost tabHost = (TabHost) findViewById(R.id.tabHost_Search);

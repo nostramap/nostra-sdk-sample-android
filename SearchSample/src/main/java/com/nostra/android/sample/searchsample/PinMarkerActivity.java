@@ -45,11 +45,6 @@ public class PinMarkerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pin_marker);
 
-        //todo Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
-        //todo Setting Client ID
-        ArcGISRuntime.setClientId("CLIENT_ID");
-
         mapView = (MapView) findViewById(R.id.mapView);
         graphicsLayerPin = new GraphicsLayer();
         initializeMap();
@@ -73,7 +68,7 @@ public class PinMarkerActivity extends AppCompatActivity {
                     NTMapServiceInfo info = map.getLocalService();
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
-                    String referrer = "geotalent_dmd.nostramap.com";    // TODO: Insert referrer
+                    String referrer = "REFERRER";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);

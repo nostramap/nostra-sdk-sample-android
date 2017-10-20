@@ -52,7 +52,6 @@ import th.co.nostrasdk.query.dynamic.NTDynamicContentResult;
 import th.co.nostrasdk.share.link.NTShortLinkParameter;
 import th.co.nostrasdk.share.link.NTShortLinkResult;
 import th.co.nostrasdk.share.link.NTShortLinkService;
-import th.co.nostrasdk.share.link.NTShortLinkType;
 
 public class DynamicContentActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -80,9 +79,9 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dynamic_map_content);
 
-        //todo Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
-        //todo Setting Client ID
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -177,7 +176,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
                     // TODO: Insert referrer
-                    String referrer = "geotalent_dmd.nostramap.com";
+                    String referrer = "REFERRER";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -192,7 +191,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
             }
 
             @Override
-            public void onError(String errorMessage,int statusCode) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(DynamicContentActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -236,7 +235,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
             }
 
             @Override
-            public void onError(String errorMessage,int statusCode) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(DynamicContentActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -260,17 +259,19 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         NTPoint ladLon = dmcResult.getPoint();
         Point p = GeometryEngine.project(ladLon.getX(), ladLon.getY(), outSR);
         PictureMarkerSymbol pin = new PictureMarkerSymbol(ContextCompat
-                .getDrawable(this,R.drawable.pin_markonmap));
+                .getDrawable(this, R.drawable.pin_markonmap));
 
         mGraphicsLayer.addGraphic(new Graphic(p, pin));
         mapView.zoomTo(p, 11);
     }
 
     void createShareUrl(NTDynamicContentResult dmcResult) {
+        if (dmcResult == null)
+            return;
+
         curtainView.setVisibility(View.VISIBLE);
         rllShare.setVisibility(View.VISIBLE);
-        // TODO: 10/16/2017 Required parameter เปลี่ยน 
-        NTShortLinkParameter param = new NTShortLinkParameter(dmcResult.getLocalName());
+        NTShortLinkParameter param = new NTShortLinkParameter(dmcResult.getLocalName(), new String[]{"ATM", "HOTEL"});
         param.setLocationDescription(dmcResult.getLocalAddress());
         param.setLanguage(NTLanguage.LOCAL);
         param.setLevel(11);
@@ -284,7 +285,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
             }
 
             @Override
-            public void onError(String errorMessage,int statusCode) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(DynamicContentActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -342,6 +343,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
                 // For the first run only
                 ldm.setLocationListener(new LocationListener() {
                     boolean firstRun = true;
+
                     @Override
                     public void onLocationChanged(Location location) {
                         lat = location.getLatitude();
@@ -354,13 +356,16 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
                     }
 
                     @Override
-                    public void onStatusChanged(String provider, int status, Bundle extras) {}
+                    public void onStatusChanged(String provider, int status, Bundle extras) {
+                    }
 
                     @Override
-                    public void onProviderEnabled(String provider) {}
+                    public void onProviderEnabled(String provider) {
+                    }
 
                     @Override
-                    public void onProviderDisabled(String provider) {}
+                    public void onProviderDisabled(String provider) {
+                    }
                 });
                 ldm.start();
             }

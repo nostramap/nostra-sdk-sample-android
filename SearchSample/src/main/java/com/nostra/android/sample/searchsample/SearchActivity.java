@@ -43,9 +43,9 @@ public class SearchActivity extends AppCompatActivity implements OnStatusChanged
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
-        //todo Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
-        //todo Setting Client ID
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -94,7 +94,7 @@ public class SearchActivity extends AppCompatActivity implements OnStatusChanged
                     NTMapServiceInfo info = mapPermission.getLocalService();
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
-                    String referrer = "geotalent_dmd.nostramap.com";    // TODO: Insert referrer
+                    String referrer = "REFERRER";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);

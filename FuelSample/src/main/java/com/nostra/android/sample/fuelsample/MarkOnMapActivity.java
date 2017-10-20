@@ -48,14 +48,13 @@ public class MarkOnMapActivity extends AppCompatActivity implements OnStatusChan
             @Override
             public void onClick(View v) {
                 point = mapView.getCenter();
-                String decimalDegrees = CoordinateConversion.pointToDecimalDegrees(
-                        point, mapView.getSpatialReference(), 7);
-                final Point newPoint = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
+                Point wgsPoint = (Point) GeometryEngine.project(point,
+                        SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE),
                         SpatialReference.create(SpatialReference.WKID_WGS84));
 
                 Intent intent = new Intent(MarkOnMapActivity.this, ListResultsActivity.class);
-                intent.putExtra("x", newPoint.getX());
-                intent.putExtra("y", newPoint.getY());
+                intent.putExtra("x", wgsPoint.getX());
+                intent.putExtra("y", wgsPoint.getY());
                 startActivity(intent);
             }
         });
@@ -77,7 +76,7 @@ public class MarkOnMapActivity extends AppCompatActivity implements OnStatusChan
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
                     // TODO: Insert referrer
-                    String referrer = "geotalent_dmd.nostramap.com";
+                    String referrer = "REFERRER";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -121,7 +120,8 @@ public class MarkOnMapActivity extends AppCompatActivity implements OnStatusChan
                         double locY = loc.getLatitude();
                         double locX = loc.getLongitude();
                         Point wgsPoint = new Point(locX, locY);
-                        mapPoint = (Point) GeometryEngine.project(wgsPoint,SpatialReference.create(4326),
+                        mapPoint = (Point) GeometryEngine.project(
+                                wgsPoint,SpatialReference.create(4326),
                                 mapView.getSpatialReference());
 
                         Unit mapUnit = mapView.getSpatialReference().getUnit();
@@ -143,7 +143,6 @@ public class MarkOnMapActivity extends AppCompatActivity implements OnStatusChan
 
                 @Override
                 public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-
                 }
             });
             locationDisplayManager.start();
