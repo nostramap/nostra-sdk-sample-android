@@ -1,14 +1,12 @@
 package com.nostra.android.sample.fuelsample;
 
-import android.app.LocalActivityManager;
-import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.TabHost;
+import android.support.v4.app.FragmentTabHost;
+import android.support.v7.app.AppCompatActivity;
 
 import com.esri.android.runtime.ArcGISRuntime;
 
-import th.co.nostrasdk.Base.NTSDKEnvironment;
+import th.co.nostrasdk.NTSDKEnvironment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,23 +16,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fuel);
 
-        // Setting SDK Environment (API KEY)
+        // TODO: Setting SDK Environment (API KEY)
         NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
-        TabHost tabHost = (TabHost) findViewById(R.id.tabHost_Search);
-        LocalActivityManager localActivityManager = new LocalActivityManager(this, true);
-        tabHost.setup(localActivityManager);
-        localActivityManager.dispatchCreate(savedInstanceState);
+        FragmentTabHost tabHost = (FragmentTabHost) findViewById(R.id.tabHost_Search);
+        tabHost.setup(this, getSupportFragmentManager(), android.R.id.tabcontent);
 
-        TabHost.TabSpec spec;
-        Intent activity_tab1 = new Intent(this, AdminPolyActivity.class);
-        spec = tabHost.newTabSpec("Tab1").setIndicator("ADMINPOLY").setContent(activity_tab1);
-        tabHost.addTab(spec);
-
-        Intent activity_tab2 = new Intent(this, MarkOnMapActivity.class);
-        spec = tabHost.newTabSpec("Tab2").setIndicator("MARK ON MAP").setContent(activity_tab2);
-        tabHost.addTab(spec);
+        tabHost.addTab(tabHost.newTabSpec("tab1").setIndicator("Administrative"),
+                AdminPolyFragment.class, null);
+        tabHost.addTab(tabHost.newTabSpec("tab2").setIndicator("Mark on map"),
+                MarkOnMapFragment.class, null);
     }
 }

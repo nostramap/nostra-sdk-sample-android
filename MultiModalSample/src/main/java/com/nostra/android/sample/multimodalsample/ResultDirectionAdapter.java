@@ -2,6 +2,7 @@ package com.nostra.android.sample.multimodalsample;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,8 +25,8 @@ class ResultDirectionAdapter extends BaseAdapter {
         this.arrDistanceAndTime = arrDistanceAndTime;
         this.mInflater = LayoutInflater.from(context);
         drawable = new Drawable[2];
-        drawable[0] = context.getResources().getDrawable(R.drawable.flag);
-        drawable[1] = context.getResources().getDrawable(R.drawable.flag_des);
+        drawable[0] = ContextCompat.getDrawable(context,R.drawable.flag);
+        drawable[1] = ContextCompat.getDrawable(context,R.drawable.flag_des);
     }
 
     @Override

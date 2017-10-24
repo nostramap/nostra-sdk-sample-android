@@ -1,6 +1,7 @@
 package com.nostra.android.sample.searchsample;
 
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,7 +14,6 @@ import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.CoordinateConversion;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
@@ -21,11 +21,13 @@ import com.esri.core.io.UserCredentials;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.PictureMarkerSymbol;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import java.util.Locale;
+
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
 
 public class PinMarkerActivity extends AppCompatActivity {
     private MapView mapView;
@@ -41,11 +43,6 @@ public class PinMarkerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pin_marker);
 
-        // Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
-        ArcGISRuntime.setClientId("CLIENT_ID");
-
         mapView = (MapView) findViewById(R.id.mapView);
         graphicsLayerPin = new GraphicsLayer();
         initializeMap();
@@ -59,16 +56,29 @@ public class PinMarkerActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onPause() {
+        mapView.pause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.unpause();
+    }
+
     private void initializeMap() {
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
+                    String referrer = "REFERRER";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -86,7 +96,7 @@ public class PinMarkerActivity extends AppCompatActivity {
                     point = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
                             SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE));
                     PictureMarkerSymbol markerSymbol = new PictureMarkerSymbol(PinMarkerActivity.this,
-                            getResources().getDrawable(R.drawable.pin_markonmap));
+                            ContextCompat.getDrawable(getApplicationContext(), R.drawable.pin_markonmap));
                     Graphic graphicPin = new Graphic(point, markerSymbol);
                     graphicsLayerPin.addGraphic(graphicPin);
                     mapView.addLayer(graphicsLayerPin);
@@ -94,7 +104,7 @@ public class PinMarkerActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(PinMarkerActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -103,9 +113,9 @@ public class PinMarkerActivity extends AppCompatActivity {
             @Override
             public void onStatusChanged(Object o, STATUS status) {
                 if (status == STATUS.LAYER_LOADED) {
-                    String results = getIntent().getExtras().getString("listResults");
+                    SearchResult results = getIntent().getParcelableExtra("result");
                     mapCallout = mapView.getCallout();
-                    mapCallout.setContent(loadView(results));
+                    mapCallout.setContent(loadView(results.getLocalName(), lat, lon));
                     mapCallout.setOffsetDp(0, 25);
                     mapCallout.show(point);
                     mapView.centerAt(point, true);
@@ -126,11 +136,15 @@ public class PinMarkerActivity extends AppCompatActivity {
     }
 
     //Set content in callout
-    private View loadView(String Name_L) {
+    private View loadView(String Name_L, double lat, double lon) {
         View view = LayoutInflater.from(PinMarkerActivity.this).inflate(R.layout.callout, null);
 
         final TextView txvNameL = (TextView) view.findViewById(R.id.txvNameL);
         txvNameL.setText(Name_L);
+
+        final TextView txvLocation = (TextView) view.findViewById(R.id.txvLocation);
+        txvLocation.setText(String.format(Locale.ENGLISH, "%.6f", lat) +
+                "  " + String.format(Locale.ENGLISH, "%.6f", lon));
 
         final ImageView imvPin = (ImageView) view.findViewById(R.id.imvPin);
         imvPin.setImageDrawable(PinMarkerActivity.this.getResources().getDrawable(R.drawable.pin_markonmap));

@@ -11,4 +11,9 @@
     <string name="addressSearchFailed">Address search failed</string>
     <string name="noResultsFound">No results found</string>
 
+    <string name="car">CAR</string>
+    <string name="motorcycle">MOTORCYCLE</string>
+    <string name="bike">BIKE</string>
+    <string name="walk">WALK</string>
+
 </resources>

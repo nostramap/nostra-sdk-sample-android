@@ -23,11 +23,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".AdminPolyActivity" />
-        <activity android:name=".MarkOnMapActivity" />
+        <activity android:name=".AdminPolyFragment" />
+        <activity android:name=".MarkOnMapFragment" />
         <activity android:name=".ListResultsActivity" />
         <activity android:name=".PriceFuelActivity" />
-        <activity android:name=".AdminPolyActivity"></activity>
     </application>
 
 </manifest>

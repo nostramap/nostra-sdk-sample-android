@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">DynamicMapContentSample</string>
+    <string name="display_on_map">DISPLAY ON MAP</string>
+    <string name="dynamic_map_content">DYNAMIC MAP CONTENT</string>
 </resources>

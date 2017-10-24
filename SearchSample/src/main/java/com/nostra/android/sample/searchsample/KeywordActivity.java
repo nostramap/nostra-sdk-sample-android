@@ -14,24 +14,25 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTAutocompleteService;
-import th.co.nostrasdk.Base.NTLocationSearchService;
-import th.co.nostrasdk.Parameter.Constant.NTCountry;
-import th.co.nostrasdk.Parameter.NTAutocompleteParameter;
-import th.co.nostrasdk.Parameter.NTLocationSearchParameter;
-import th.co.nostrasdk.Result.NTAutocompleteResult;
-import th.co.nostrasdk.Result.NTAutocompleteResultSet;
-import th.co.nostrasdk.Result.NTLocationSearchResult;
-import th.co.nostrasdk.Result.NTLocationSearchResultSet;
+import java.util.ArrayList;
+
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.common.NTCountry;
+import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.search.autocomplete.NTAutoCompleteSearchParameter;
+import th.co.nostrasdk.search.autocomplete.NTAutoCompleteSearchResultSet;
+import th.co.nostrasdk.search.autocomplete.NTAutoCompleteSearchService;
+import th.co.nostrasdk.search.location.NTLocationSearchParameter;
+import th.co.nostrasdk.search.location.NTLocationSearchResult;
+import th.co.nostrasdk.search.location.NTLocationSearchResultSet;
+import th.co.nostrasdk.search.location.NTLocationSearchService;
 
 public class KeywordActivity extends AppCompatActivity {
     private ListView lvAutoSearch;
     private EditText edtKeyword;
     private Button btnSearch;
     private ArrayAdapter<String> adapter;
-
-    private NTAutocompleteResult[] results;
+    private String[] results;
     private String[] arrAutoSearch;
     private String nameLocation;
     private double lat;
@@ -41,6 +42,7 @@ public class KeywordActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_keyword);
+
         lvAutoSearch = (ListView) findViewById(R.id.lvAutoSearch);
         btnSearch = (Button) findViewById(R.id.btnSearch);
         edtKeyword = (EditText) findViewById(R.id.edtKeyWord);
@@ -63,41 +65,37 @@ public class KeywordActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String search = edtKeyword.getText().toString();
-                String[] categories = new String[] {};
-                String[] localCategories = new String[] {};
-                NTLocationSearchParameter param = new NTLocationSearchParameter(
-                        search, categories, localCategories);
-                param.setLat(lat);
-                param.setLon(lon);
+                NTPoint point = new NTPoint(lon, lat);
+                NTLocationSearchParameter param = new NTLocationSearchParameter(search);
+                param.setPoint(point);
                 param.setRadius(1000);
                 param.setCountry(NTCountry.THAILAND);
 
                 NTLocationSearchService.executeAsync(param,
-                        new IServiceRequestListener<NTLocationSearchResultSet>() {
-                    @Override
-                    public void onResponse(NTLocationSearchResultSet result, String responseCode) {
-                        NTLocationSearchResult[] results = result.getResults();
-                        String[] list2 = new String[results.length];
+                        new ServiceRequestListener<NTLocationSearchResultSet>() {
+                            @Override
+                            public void onResponse(NTLocationSearchResultSet result) {
+                                NTLocationSearchResult[] results = result.getResults();
+                                ArrayList<SearchResult> resultList = new ArrayList<>();
+                                for (NTLocationSearchResult data : results) {
+                                    SearchResult searchResult = new SearchResult(data.getLocalName(),
+                                            data.getAdminLevel1().getLocalName(),
+                                            data.getAdminLevel2().getLocalName(),
+                                            data.getAdminLevel3().getLocalName(),
+                                            data.getAdminLevel3().getLocalName(),
+                                            data.getLocationPoint());
+                                    resultList.add(searchResult);
+                                }
+                                Intent intent = new Intent(KeywordActivity.this, ListResultsActivityNew.class);
+                                intent.putParcelableArrayListExtra("results", resultList);
+                                startActivity(intent);
+                            }
 
-                        for (int i = 0; i < results.length; i++) {
-                            list2[i] = results[i].getName_L() + " "
-                                    + results[i].getAdminLevel4_L() + " "
-                                    + results[i].getAdminLevel3_L() + " "
-                                    + results[i].getAdminLevel2_L() + " "
-                                    + results[i].getAdminLevel1_L();
-                        }
-                        Intent intent = new Intent(KeywordActivity.this, ListResultsActivity.class);
-                        intent.putExtra("autoCompleteSearchResults", list2);
-                        intent.putExtra("lon", lon);
-                        intent.putExtra("lat", lat);
-                        startActivity(intent);
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        Toast.makeText(KeywordActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
-                    }
-                });
+                            @Override
+                            public void onError(String errorMessage, int statusCode) {
+                                Toast.makeText(KeywordActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                            }
+                        });
             }
         });
     }
@@ -120,29 +118,29 @@ public class KeywordActivity extends AppCompatActivity {
                     }
 
                     public void onFinish() {
-                        NTAutocompleteParameter autocompleteParameter =
-                                new NTAutocompleteParameter(keyword);
-                        NTAutocompleteService.executeAsync(autocompleteParameter,
-                                new IServiceRequestListener<NTAutocompleteResultSet>() {
+                        NTAutoCompleteSearchParameter autocompleteParameter =
+                                new NTAutoCompleteSearchParameter(keyword);
+                        NTAutoCompleteSearchService.executeAsync(autocompleteParameter,
+                                new ServiceRequestListener<NTAutoCompleteSearchResultSet>() {
 
-                            @Override
-                            public void onResponse(NTAutocompleteResultSet result, String responseCode) {
-                                results = result.getResults();
-                                arrAutoSearch = new String[results.length];
-                                for (int i = 0; i < results.length; i++) {
-                                    String name = results[i].getName();
-                                    arrAutoSearch[i] = name;
-                                }
-                                adapter = new ArrayAdapter<>(KeywordActivity.this,
-                                        R.layout.row_search, R.id.txvLocation, arrAutoSearch);
-                                lvAutoSearch.setAdapter(adapter);
-                            }
+                                    @Override
+                                    public void onResponse(NTAutoCompleteSearchResultSet result) {
+                                        results = result.getResults();
+                                        arrAutoSearch = new String[results.length];
+                                        for (int i = 0; i < results.length; i++) {
+                                            String name = results[i];
+                                            arrAutoSearch[i] = name;
+                                        }
+                                        adapter = new ArrayAdapter<>(KeywordActivity.this,
+                                                R.layout.row_search, R.id.txvLocation, arrAutoSearch);
+                                        lvAutoSearch.setAdapter(adapter);
+                                    }
 
-                            @Override
-                            public void onError(String errorMessage) {
-                                Toast.makeText(KeywordActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                                    @Override
+                                    public void onError(String errorMessage, int statusCode) {
+                                        Toast.makeText(KeywordActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                                    }
+                                });
                     }
                 }.start();
             }

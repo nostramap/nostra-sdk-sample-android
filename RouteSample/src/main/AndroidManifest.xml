@@ -2,7 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.nostra.android.sample.routesample">
 
-    <uses-feature android:glEsVersion="0x00020000" android:required="true" />
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -27,10 +29,10 @@
         <activity android:name=".DirectionActivity">
             android:screenOrientation="portrait"
         </activity>
-
         <activity android:name=".PinMarkerActivity">
             android:screenOrientation="portrait"
         </activity>
+        <activity android:name=".SearchAlongRouteActivity" />
     </application>
 
 </manifest>

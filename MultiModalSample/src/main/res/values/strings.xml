@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MultiModalSample</string>
+    <string name="to_location">To_Location</string>
+    <string name="from_location">From_Location</string>
 </resources>

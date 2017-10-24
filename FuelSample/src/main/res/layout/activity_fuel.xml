@@ -6,7 +6,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="?android:attr/actionBarSize"
         android:background="@color/colorGreen">
 
         <TextView
@@ -16,11 +16,10 @@
             android:layout_centerVertical="true"
             android:text="FUEL SEARCH"
             android:textColor="#FFFFFF"
-            android:textSize="20dp" />
-
+            android:textSize="20sp" />
     </RelativeLayout>
 
-    <TabHost
+    <android.support.v4.app.FragmentTabHost
         android:id="@+id/tabHost_Search"
         style="@style/tabStyle"
         android:layout_width="match_parent"
@@ -41,13 +40,9 @@
                 android:id="@android:id/tabcontent"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#FFFFFF">
-
-
-            </FrameLayout>
+                android:background="#FFFFFF" />
         </LinearLayout>
-    </TabHost>
-
+    </android.support.v4.app.FragmentTabHost>
 </LinearLayout>
 
 

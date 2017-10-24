@@ -26,16 +26,18 @@ public class ResultsDirectionActivity extends AppCompatActivity {
         arrDistanceAndTime = data.getStringArray("distance_time");
 
         ArrayList<String> arrDirectionResult;
-        arrDirectionResult = new ArrayList<>(Arrays.asList(directions));
-        arrDirectionResult.add(0,"เริ่มต้นเดินทาง");
-        int size = arrDirectionResult.size();
-        arrDirectionResult.add(size,"สิ้นสุดการเดินทาง");
+        if (directions!=null){
+            arrDirectionResult = new ArrayList<>(Arrays.asList(directions));
+            arrDirectionResult.add(0,"เริ่มต้นเดินทาง");
+            int size = arrDirectionResult.size();
+            arrDirectionResult.add(size,"สิ้นสุดการเดินทาง");
 
-        ListView lvDirection;
-        lvDirection = (ListView)findViewById(R.id.lvDirections);
-        ResultDirectionAdapter adapter = new ResultDirectionAdapter(this,
-                arrDirectionResult, type, arrDistanceAndTime);
-        lvDirection.setAdapter(adapter);
+            ListView lvDirection;
+            lvDirection = (ListView)findViewById(R.id.lvDirections);
+            ResultDirectionAdapter adapter = new ResultDirectionAdapter(this,
+                    arrDirectionResult, type, arrDistanceAndTime);
+            lvDirection.setAdapter(adapter);
+        }
 
         ImageView imvBack;
         imvBack = (ImageView)findViewById(R.id.imbBack);

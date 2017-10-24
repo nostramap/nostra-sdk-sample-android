@@ -10,11 +10,12 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTFuelService;
-import th.co.nostrasdk.Parameter.NTFuelParameter;
-import th.co.nostrasdk.Result.NTFuelResult;
-import th.co.nostrasdk.Result.NTFuelResultSet;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.info.fuel.NTFuelParameter;
+import th.co.nostrasdk.info.fuel.NTFuelResult;
+import th.co.nostrasdk.info.fuel.NTFuelResultSet;
+import th.co.nostrasdk.info.fuel.NTFuelService;
+import th.co.nostrasdk.network.NTPoint;
 
 public class ListResultsActivity extends AppCompatActivity {
     private double getX = 0;
@@ -23,7 +24,6 @@ public class ListResultsActivity extends AppCompatActivity {
     private String codeDistrict;
     private NTFuelResult[] results;
 
-    private ImageButton btnBack;
     private ListView lvFuel;
 
     @Override
@@ -32,7 +32,7 @@ public class ListResultsActivity extends AppCompatActivity {
         setContentView(R.layout.listview_fuel);
 
         lvFuel = (ListView) findViewById(R.id.lvFuel);
-        btnBack = (ImageButton) findViewById(R.id.imbBack);
+        ImageButton btnBack = (ImageButton) findViewById(R.id.imbBack);
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -55,20 +55,21 @@ public class ListResultsActivity extends AppCompatActivity {
     }
 
     private void displayFuelByCoordinate() {
-        NTFuelParameter fuelParameter = new NTFuelParameter(getY, getX);
-        NTFuelService.executeAsync(fuelParameter, new IServiceRequestListener<NTFuelResultSet>() {
+        NTPoint point = new NTPoint(getX,getY);
+        NTFuelParameter fuelParameter = new NTFuelParameter(point);
+        NTFuelService.executeAsync(fuelParameter, new ServiceRequestListener<NTFuelResultSet>() {
             @Override
-            public void onResponse(final NTFuelResultSet result, String responseCode) {
+            public void onResponse(final NTFuelResultSet result) {
                 results = result.getResults();
                 final String[] fuelResults = new String[results.length];
                 for (int i = 0; i < results.length; i++) {
-                    fuelResults[i] = results[i].getBrandName_L();
+                    fuelResults[i] = results[i].getLocalBrandName();
                 }
                 bindFuelResult(fuelResults);
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(ListResultsActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -76,19 +77,19 @@ public class ListResultsActivity extends AppCompatActivity {
 
     private void displayFuelByAdminCode() {
         NTFuelParameter fuelParameter = new NTFuelParameter(codeProvince.trim(), codeDistrict.trim());
-        NTFuelService.executeAsync(fuelParameter, new IServiceRequestListener<NTFuelResultSet>() {
+        NTFuelService.executeAsync(fuelParameter, new ServiceRequestListener<NTFuelResultSet>() {
             @Override
-            public void onResponse(final NTFuelResultSet result, String responseCode) {
+            public void onResponse(final NTFuelResultSet result) {
                 results = result.getResults();
                 final String[] fuelResults = new String[results.length];
                 for (int i = 0; i < results.length; i++) {
-                    fuelResults[i] = results[i].getBrandName_L();
+                    fuelResults[i] = results[i].getLocalBrandName();
                 }
                 bindFuelResult(fuelResults);
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage,int statusCode) {
                 Toast.makeText(ListResultsActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -104,7 +105,7 @@ public class ListResultsActivity extends AppCompatActivity {
                 for (int i = 0; i < results.length; i++) {
                     if (position == i) {
                         Intent intent = new Intent(ListResultsActivity.this, PriceFuelActivity.class);
-                        intent.putExtra("nameBrandL", results[i].getBrandName_L());
+                        intent.putExtra("nameBrandL", results[i].getLocalBrandName());
                         intent.putExtra("diesel", results[i].getDiesel());
                         intent.putExtra("dieselPremium", results[i].getDieselPremium());
                         intent.putExtra("gasohol91", results[i].getGasohol91());

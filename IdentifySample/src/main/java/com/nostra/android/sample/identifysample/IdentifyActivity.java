@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,18 +36,20 @@ import com.esri.core.symbol.PictureMarkerSymbol;
 import java.util.HashMap;
 import java.util.Map;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTIdentifyService;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Parameter.Class.NTPoint;
-import th.co.nostrasdk.Parameter.NTIdentifyParameter;
-import th.co.nostrasdk.Result.NTIdentifyResult;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.query.poi.NTIdentifyParameter;
+import th.co.nostrasdk.query.poi.NTIdentifyResult;
+import th.co.nostrasdk.query.poi.NTIdentifyService;
 
 public class IdentifyActivity extends AppCompatActivity
         implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
+
     private MapView mapView;
     private NTMapPermissionResult[] ntMapResults;
     private Point point;
@@ -61,9 +64,9 @@ public class IdentifyActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_identify);
 
-        // Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -76,7 +79,7 @@ public class IdentifyActivity extends AppCompatActivity
         imvCurrentLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mapView.centerAt(mapPoint,true);
+                mapView.centerAt(mapPoint, true);
             }
         });
         initialMap();
@@ -115,12 +118,12 @@ public class IdentifyActivity extends AppCompatActivity
                 double locationY = location.getLatitude();
                 double locationX = location.getLongitude();
                 Point wgsPoint = new Point(locationX, locationY);
-                mapPoint = (Point) GeometryEngine.project(wgsPoint,SpatialReference.create(4326),
+                mapPoint = (Point) GeometryEngine.project(wgsPoint, SpatialReference.create(4326),
                         mapView.getSpatialReference());
 
                 Unit mapUnit = mapView.getSpatialReference().getUnit();
                 double zoomWidth = Unit.convertUnits(5, Unit.create(LinearUnit.Code.MILE_US), mapUnit);
-                Envelope zoomExtent = new Envelope(mapPoint,zoomWidth, zoomWidth);
+                Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
                 mapView.setExtent(zoomExtent);
             }
         }
@@ -140,15 +143,17 @@ public class IdentifyActivity extends AppCompatActivity
 
     // Add map
     private void initialMap() {
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
-                    String referrer = "referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
+                    // TODO: Insert referrer
+                    String referrer = "REFERRER";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -157,24 +162,22 @@ public class IdentifyActivity extends AppCompatActivity
                     ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
                     mapView.addLayer(layer);
 
-                    NTPoint ntPoint = map.getDefaultZoom();
+                    NTPoint ntPoint = map.getDefaultLocation();
                     if (ntPoint != null) {
                         lat = ntPoint.getY();
                         lon = ntPoint.getX();
                         point = new Point(lat, lon);
-                        String decimalDegrees = CoordinateConversion.pointToDecimalDegrees(point,
-                                SpatialReference.create(SpatialReference.WKID_WGS84), 7);
-                        point = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
+                        Point wmPoint = (Point) GeometryEngine.project(point,
+                                SpatialReference.create(SpatialReference.WKID_WGS84),
                                 SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE));
-                        mapView.addLayer(layer);
-                        mapView.centerAt(point, true);
+                        mapView.centerAt(wmPoint, true);
                         mapView.addLayer(graphicsLayerPin);
                     }
                 }
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(IdentifyActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -191,12 +194,12 @@ public class IdentifyActivity extends AppCompatActivity
     }
 
     //Set content in callout
-    private View loadView(String name,
-                          final String nostraId,
-                          String adminLevel4L,
-                          String adminLevel3L,
-                          String adminLevel2L,
-                          String adminLevel1L) {
+    private View getCalloutView(String name,
+                                final String nostraId,
+                                String adminLevel4L,
+                                String adminLevel3L,
+                                String adminLevel2L,
+                                String adminLevel1L) {
         View view = LayoutInflater.from(IdentifyActivity.this).inflate(R.layout.callout, null);
         TextView txvNameL = (TextView) view.findViewById(R.id.txvNameL);
         TextView txvLocation = (TextView) view.findViewById(R.id.txvLocation);
@@ -204,7 +207,7 @@ public class IdentifyActivity extends AppCompatActivity
         Button btnDetail = (Button) view.findViewById(R.id.btnDetail);
 
         txvNameL.setText(name);
-        txvLocation.setText(adminLevel4L + " " + adminLevel3L + " "+ "\n" + adminLevel2L + " " + adminLevel1L);
+        txvLocation.setText(adminLevel4L + " " + adminLevel3L + " " + "\n" + adminLevel2L + " " + adminLevel1L);
         imvPinOnMap.setImageDrawable(IdentifyActivity.this.getResources().getDrawable(R.drawable.pin_markonmap));
         btnDetail.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -236,21 +239,22 @@ public class IdentifyActivity extends AppCompatActivity
                 final Point wgsPoint = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
                         SpatialReference.create(SpatialReference.WKID_WGS84));
                 PictureMarkerSymbol markerSymbol = new PictureMarkerSymbol(this,
-                        getResources().getDrawable(R.drawable.pin_markonmap));
+                        ContextCompat.getDrawable(this,R.drawable.pin_markonmap));
                 Graphic graphic = new Graphic(point, markerSymbol);
                 final int id = graphicsLayerPin.addGraphic(graphic);
                 // Setting parameter
-                NTIdentifyParameter param = new NTIdentifyParameter(wgsPoint.getY(), wgsPoint.getX());
+                NTPoint pointParam = new NTPoint(wgsPoint.getX(), wgsPoint.getY());
+                NTIdentifyParameter param = new NTIdentifyParameter(pointParam);
                 // Call NTIdentifyService and show callout
-                NTIdentifyService.executeAsync(param, new IServiceRequestListener<NTIdentifyResult>() {
+                NTIdentifyService.executeAsync(param, new ServiceRequestListener<NTIdentifyResult>() {
                     @Override
-                    public void onResponse(NTIdentifyResult result, String s) {
-                        String nameL = result.getName_L();
+                    public void onResponse(NTIdentifyResult result) {
+                        String nameL = result.getLocalName();
                         String nostraId = result.getNostraId();
-                        String adminLevel1L = result.getAdminLevel1_L();
-                        String adminLevel2L = result.getAdminLevel2_L();
-                        String adminLevel3L = result.getAdminLevel3_L();
-                        String adminLevel4L = result.getAdminLevel4_L();
+                        String adminLevel1L = result.getAdminLevel1().getLocalName();
+                        String adminLevel2L = result.getAdminLevel2().getLocalName();
+                        String adminLevel3L = result.getAdminLevel3().getLocalName();
+                        String adminLevel4L = result.getAdminLevel4().getLocalName();
 
                         Map<String, Object> attr = new HashMap<>();
                         attr.put("nameL", nameL);
@@ -263,15 +267,15 @@ public class IdentifyActivity extends AppCompatActivity
                         mapCallout = mapView.getCallout();
 
                         // Sets custom content view to Callout
-                        mapCallout.setContent(loadView(nameL, nostraId,
+                        mapCallout.setContent(getCalloutView(nameL, nostraId,
                                 adminLevel4L, adminLevel3L, adminLevel2L, adminLevel1L));
                         mapCallout.setOffsetDp(0, 25);
                         mapCallout.show(point);
                     }
 
                     @Override
-                    public void onError(String s) {
-                        Toast.makeText(IdentifyActivity.this, s, Toast.LENGTH_SHORT).show();
+                    public void onError(String error, int statusCode) {
+                        Toast.makeText(IdentifyActivity.this, error, Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {
@@ -283,10 +287,10 @@ public class IdentifyActivity extends AppCompatActivity
 
     @Override
     public void onSingleTap(float x, float y) {
-        if(mapCallout != null && mapCallout.isShowing()) {
+        if (mapCallout != null && mapCallout.isShowing()) {
             mapCallout.hide();
             graphicsLayerPin.removeAll();
-        }else {
+        } else {
             Toast.makeText(IdentifyActivity.this, "Select location", Toast.LENGTH_SHORT).show();
         }
     }

@@ -23,8 +23,6 @@
             android:id="@+id/btnCancel"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="80dp"
             android:background="#FFFFFF"
             android:text="Cancel" />
 
@@ -32,7 +30,7 @@
             android:id="@+id/btnOk"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:background="#FFFFFF"
             android:text="OK" />
     </RelativeLayout>
@@ -41,9 +39,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/relativeLayout"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_marginBottom="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginEnd="16dp"
         android:contentDescription="@null"
         android:src="@drawable/logo_watermark_onmap" />
 
@@ -53,5 +51,6 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
+        android:contentDescription="@null"
         android:src="@drawable/pin_markonmap" />
 </RelativeLayout>

@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
+import th.co.nostrasdk.network.NTPoint;
 import th.co.nostrasdk.search.address.NTAddressSearchResult;
 
 public class ListResultsActivity extends Activity {
@@ -79,18 +80,21 @@ public class ListResultsActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             NTAddressSearchResult result = (NTAddressSearchResult) results[position];
-            Intent intent = new Intent(ListResultsActivity.this, MapActivity.class)
-                    .putExtra("lat", result.getPoint().getY())
-                    .putExtra("lon", result.getPoint().getX())
-                    .putExtra("houseNo", result.getHouseNo())
-                    .putExtra("moo", result.getMoo())
-                    .putExtra("soiL", result.getLocalSoiName())
-                    .putExtra("roadL", result.getAdminLevel4().getLocalName())
-                    .putExtra("adminLevel1L", result.getAdminLevel1().getLocalName())
-                    .putExtra("adminLevel2L", result.getAdminLevel2().getLocalName())
-                    .putExtra("adminLevel3L", result.getAdminLevel3().getLocalName())
-                    .putExtra("postcode", result.getPostcode());
-            startActivity(intent);
+            NTPoint point = result.getPoint();
+            if (point != null) {
+                Intent intent = new Intent(ListResultsActivity.this, MapActivity.class)
+                        .putExtra("lat", point.getY())
+                        .putExtra("lon", point.getX())
+                        .putExtra("houseNo", result.getHouseNo())
+                        .putExtra("moo", result.getMoo())
+                        .putExtra("soiL", result.getLocalSoiName())
+                        .putExtra("roadL", result.getAdminLevel4().getLocalName())
+                        .putExtra("adminLevel1L", result.getAdminLevel1().getLocalName())
+                        .putExtra("adminLevel2L", result.getAdminLevel2().getLocalName())
+                        .putExtra("adminLevel3L", result.getAdminLevel3().getLocalName())
+                        .putExtra("postcode", result.getPostcode());
+                startActivity(intent);
+            }
         }
     };
 

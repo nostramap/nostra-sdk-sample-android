@@ -23,12 +23,13 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.core.geometry.Unit;
 import com.esri.core.io.UserCredentials;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Parameter.Class.NTPoint;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTPoint;
 
 public class SearchActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -42,9 +43,9 @@ public class SearchActivity extends AppCompatActivity implements OnStatusChanged
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
-        // Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -84,15 +85,16 @@ public class SearchActivity extends AppCompatActivity implements OnStatusChanged
 
     // Add map and current location
     private void initialMap() {
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult mapPermission = getThailandBasemap();
                 if (mapPermission != null) {
-                    String url = mapPermission.getServiceUrl_L();
-                    String token = mapPermission.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo info = mapPermission.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
+                    String referrer = "REFERRER";    // TODO: Insert referrer
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -101,16 +103,16 @@ public class SearchActivity extends AppCompatActivity implements OnStatusChanged
                     ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
                     mapView.addLayer(layer);
 
-                    NTPoint ntPoint = mapPermission.getDefaultZoom();
+                    NTPoint ntPoint = mapPermission.getDefaultLocation();
                     if (ntPoint != null) {
-                        lon = mapPermission.getDefaultZoom().getX();
-                        lat = mapPermission.getDefaultZoom().getY();
+                        lon = mapPermission.getDefaultLocation().getX();
+                        lat = mapPermission.getDefaultLocation().getY();
                     }
                 }
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(SearchActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });

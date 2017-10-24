@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -22,7 +23,6 @@ import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnStatusChangedListener;
 import com.esri.android.runtime.ArcGISRuntime;
-import com.esri.core.geometry.CoordinateConversion;
 import com.esri.core.geometry.Envelope;
 import com.esri.core.geometry.GeometryEngine;
 import com.esri.core.geometry.LinearUnit;
@@ -68,7 +68,7 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
         setContentView(R.layout.activity_map);
 
         // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
+        NTSDKEnvironment.setEnvironment("API_KEY", this);
         // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
@@ -134,11 +134,10 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
                 NTMapPermissionResult mapPermission = getThailandBasemap();
                 if (mapPermission != null) {
                     NTMapServiceInfo localInfo = mapPermission.getLocalService();
-
                     String url = localInfo.getServiceUrl();
                     String token = localInfo.getServiceToken();
                     // TODO: Insert referrer
-                    String referrer = "geotalent_dmd.nostramap.com";
+                    String referrer = "REFERRER";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -149,12 +148,11 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
 
                     NTPoint ntPoint = mapPermission.getDefaultLocation();
                     if (ntPoint != null) {
-                        pointMap = new Point(ntPoint.getX(), ntPoint.getY());
-                        String decimalDegrees = CoordinateConversion.pointToDecimalDegrees(
-                                pointMap, SpatialReference.create(SpatialReference.WKID_WGS84), 7);
-                        pointMap = CoordinateConversion.decimalDegreesToPoint(
-                                decimalDegrees, SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR));
-
+                        Point wgsPoint = new Point(ntPoint.getX(), ntPoint.getY());
+                        // Convert WGS84 point (lat, lon) to WebMercator point (y, x)
+                        pointMap = (Point) GeometryEngine.project(wgsPoint,
+                                SpatialReference.create(SpatialReference.WKID_WGS84),
+                                SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE));
                         mapView.addLayer(graphicsLayer);
                         mapView.centerAt(pointMap, true);
                     }
@@ -184,8 +182,10 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
                         double locY = loc.getLatitude();
                         double locX = loc.getLongitude();
                         Point wgsPoint = new Point(locX, locY);
+                        //
                         mapPoint = (Point) GeometryEngine.project(wgsPoint,
-                                SpatialReference.create(4326), mapView.getSpatialReference());
+                                SpatialReference.create(SpatialReference.WKID_WGS84),
+                                mapView.getSpatialReference());
 
                         Unit mapUnit = mapView.getSpatialReference().getUnit();
                         double zoomWidth = Unit.convertUnits(5, Unit.create(LinearUnit.Code.MILE_US), mapUnit);
@@ -209,13 +209,13 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
             locationManager.start();
         } else if (status == STATUS.LAYER_LOADED && isSearchResult) {
             graphicsLayer.removeAll();
-            pointMap = new Point(lonSearch, latSearch);
-            String strPoint = CoordinateConversion.pointToDecimalDegrees(pointMap,
-                    SpatialReference.create(SpatialReference.WKID_WGS84), 7);
-            pointMap = CoordinateConversion.decimalDegreesToPoint(strPoint,
+            Point wgsPoint = new Point(lonSearch, latSearch);
+            // Convert WGS84 point (lat, lon) to WebMercator point (x, y)
+            pointMap = (Point) GeometryEngine.project(wgsPoint,
+                    SpatialReference.create(SpatialReference.WKID_WGS84),
                     SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE));
             PictureMarkerSymbol symbol = new PictureMarkerSymbol(MapActivity.this,
-                    getResources().getDrawable(R.drawable.pin_markonmap));
+                    ContextCompat.getDrawable(this,R.drawable.pin_markonmap));
 
             Map<String, Object> attr = new HashMap<>();
             attr.put("houseNo", houseNo);

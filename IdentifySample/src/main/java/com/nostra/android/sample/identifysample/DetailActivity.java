@@ -9,16 +9,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTExtraContentService;
-import th.co.nostrasdk.Parameter.Class.NTExtraContentFood;
-import th.co.nostrasdk.Parameter.Class.NTExtraContentTravel;
-import th.co.nostrasdk.Parameter.NTExtraContentParameter;
-import th.co.nostrasdk.Result.NTExtraContentResult;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.query.extra.NTAttraction;
+import th.co.nostrasdk.query.extra.NTEntertainmentService;
+import th.co.nostrasdk.query.extra.NTExtraContentFood;
+import th.co.nostrasdk.query.extra.NTExtraContentHotel;
+import th.co.nostrasdk.query.extra.NTExtraContentParameter;
+import th.co.nostrasdk.query.extra.NTExtraContentResult;
+import th.co.nostrasdk.query.extra.NTExtraContentService;
+import th.co.nostrasdk.query.extra.NTExtraContentTravel;
+import th.co.nostrasdk.query.extra.NTFoodType;
 
 public class DetailActivity extends AppCompatActivity {
 
-    private ImageButton imbBack;
     private ImageView imvLocation;
     private TextView txvNameL;
     private TextView txvInfo;
@@ -31,7 +34,7 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        imbBack = (ImageButton) findViewById(R.id.imbBack);
+        ImageButton imbBack = (ImageButton) findViewById(R.id.imbBack);
         imvLocation = (ImageView) findViewById(R.id.imvLocation);
         txvNameL = (TextView) findViewById(R.id.txvNameL);
         txvInfo = (TextView) findViewById(R.id.txvInfo);
@@ -42,25 +45,43 @@ public class DetailActivity extends AppCompatActivity {
         String nostraId = getIntent().getStringExtra("nostraId");
         if (nostraId != null && nostraId.length() > 0) {
             NTExtraContentParameter param = new NTExtraContentParameter(nostraId);
-            NTExtraContentService.executeAsync(param, new IServiceRequestListener<NTExtraContentResult>() {
+            NTExtraContentService.executeAsync(param, new ServiceRequestListener<NTExtraContentResult>() {
                 @Override
-                public void onResponse(NTExtraContentResult result, String responseCode) {
+                public void onResponse(NTExtraContentResult result) {
                     if (result != null) {
                         NTExtraContentTravel travel = result.getTravel();
                         NTExtraContentFood food = result.getFood();
-
+                        NTExtraContentHotel hotel = result.getHotel();
                         if (travel != null) {
-                            txvNameL.setText(travel.getPlaceName_L());
-                            txvInfo.setText(travel.getAttraction1_L());
-                            txvDesc.setText(travel.getHistory_L());
-                            loadPicture(travel.getPicture1());
+                            String[] picture = travel.getPictureUrls();
+                            NTAttraction[] attractions = travel.getAttractions();
+
+                            txvNameL.setText(travel.getPlaceZone());
+                            txvInfo.setText(attractions[0].getLocalAttraction());
+                            txvDesc.setText(travel.getLocalHistory());
+                            if (picture.length > 0)
+                                loadPicture(picture[0]);
 
                         } else if (food != null) {
-                            txvNameL.setText(food.getPlaceName_L());
-                            txvInfo.setText(food.getFoodType1_L());
-                            txvDesc.setText(food.getEntertainService_L());
-                            loadPicture(food.getPicture1());
+                            NTFoodType[] type = food.getFoodTypes();
+                            NTEntertainmentService entertainmentService = food.getEntertainmentService();
+                            String[] picture = food.getPictureUrls();
 
+                            txvNameL.setText(food.getPlaceZone());
+                            txvInfo.setText(type[0].getLocalType());
+                            txvDesc.setText(entertainmentService.getLocalService());
+                            if (picture.length > 0)
+                                loadPicture(picture[0]);
+
+                        } else if (hotel != null) {
+                            String[] sportsAndRecreation = hotel.getSportsAndRecreations();
+                            String[] picture = hotel.getPictureUrls();
+
+                            txvNameL.setText(hotel.getName());
+                            txvInfo.setText(hotel.getHotelType());
+                            txvDesc.setText(sportsAndRecreation[0]);
+                            if (picture.length > 0)
+                                loadPicture(picture[0]);
                         } else {
                             Toast.makeText(DetailActivity.this, "No data for given nostraId.",
                                     Toast.LENGTH_SHORT).show();
@@ -70,7 +91,7 @@ public class DetailActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onError(String errorMessage) {
+                public void onError(String errorMessage, int statusCode) {
                     Toast.makeText(DetailActivity.this, "No data for given nostraId.",
                             Toast.LENGTH_SHORT).show();
                     onBackPressed();

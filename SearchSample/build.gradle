@@ -30,4 +30,5 @@ dependencies {
     compile project(':nostra-sdk-release')
     compile "com.android.support:appcompat-v7:$rootProject.ext.androidSupportVersion"
     compile "com.esri.arcgis.android:arcgis-android:$rootProject.ext.arcgisVersion"
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
 }

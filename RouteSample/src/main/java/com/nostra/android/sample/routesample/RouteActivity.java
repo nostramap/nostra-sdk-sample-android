@@ -43,23 +43,24 @@ import com.esri.core.symbol.SimpleMarkerSymbol;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTRouteService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Parameter.Class.NTDirection;
-import th.co.nostrasdk.Parameter.Class.NTLocation;
-import th.co.nostrasdk.Parameter.Class.NTPoint;
-import th.co.nostrasdk.Parameter.Constant.NTCountry;
-import th.co.nostrasdk.Parameter.Constant.NTImpedanceMode;
-import th.co.nostrasdk.Parameter.Constant.NTLanguage;
-import th.co.nostrasdk.Parameter.Constant.NTTravelMode;
-import th.co.nostrasdk.Parameter.NTRouteParameter;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.nostrasdk.Result.NTRouteResult;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.common.NTImpedanceMode;
+import th.co.nostrasdk.common.NTLanguage;
+import th.co.nostrasdk.common.NTTravelMode;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTDirection;
+import th.co.nostrasdk.network.NTLocation;
+import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.network.route.NTRouteParameter;
+import th.co.nostrasdk.network.route.NTRouteResult;
+import th.co.nostrasdk.network.route.NTRouteService;
 
 public class RouteActivity extends AppCompatActivity implements OnStatusChangedListener {
 
@@ -76,6 +77,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
     private ImageView imvCurrentLocation;
     private ImageButton imbNavigation;
     private ImageButton imbDirection;
+    private ImageButton imbSearch;
 
     private GraphicsLayer lineSymbolGraphicLayer = new GraphicsLayer();
     private GraphicsLayer pinGraphicLayer = new GraphicsLayer();
@@ -102,9 +104,9 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_route);
 
-        // Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
@@ -118,6 +120,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         edtToLocation = (Button) findViewById(R.id.edtToLocation);
         imbNavigation = (ImageButton) findViewById(R.id.imbNavigation);
         imbDirection = (ImageButton) findViewById(R.id.imbDirection);
+        imbSearch = (ImageButton) findViewById(R.id.imbSearch);
         imvCurrentLocation = (ImageButton) findViewById(R.id.imbCurrentLocation);
         bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomSheet));
 
@@ -135,15 +138,17 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         lineSymbol = new SimpleLineSymbol(green, 8F, SimpleLineSymbol.STYLE.SOLID);
 
         // Add map
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
+                    // TODO: Insert referrer
+                    String referrer = "REFERRER";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -158,7 +163,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(RouteActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -171,22 +176,22 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (position == 0) {
                     positionGo = position;
-                    btnVehicle.setText("CAR");
+                    btnVehicle.setText(R.string.car);
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
                 } else if (position == 1) {
                     positionGo = position;
-                    btnVehicle.setText("MOTORCYCLE");
+                    btnVehicle.setText(R.string.motorcycle);
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
                 } else if (position == 2) {
                     positionGo = position;
-                    btnVehicle.setText("BIKE");
+                    btnVehicle.setText(R.string.bike);
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
                 } else if (position == 3) {
                     positionGo = position;
-                    btnVehicle.setText("WALK");
+                    btnVehicle.setText(R.string.walk);
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 }
             }
@@ -198,12 +203,13 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         btnVehicle.setOnClickListener(btnVehicleClick);
         imbNavigation.setOnClickListener(btnNavigateClick);
         imbDirection.setOnClickListener(btnDirectionClick);
+        imbSearch.setOnClickListener(btnSearchClick);
         imvCurrentLocation.setOnClickListener(imvCurrentLocationClick);
 
         mapView.setOnSingleTapListener(new OnSingleTapListener() {
             @Override
             public void onSingleTap(float v, float v1) {
-                if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+                if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 }
             }
@@ -277,18 +283,17 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
             }
             NTRouteParameter param = new NTRouteParameter(stops);
             param.setTravelMode(travelMode);
-            param.setCountry(NTCountry.THAILAND);
             param.setImpedance(NTImpedanceMode.TIME);
             param.setLanguage(NTLanguage.LOCAL);
             param.setReturnRouteDetail(true);
             param.setFindBestSequence(true);
             param.setPreserveFirstStop(true);
             param.setPreserveLastStop(true);
-            param.setTollRoad(true);
+            param.setUseTollRoad(true);
 
-            NTRouteService.executeAsync(param, new IServiceRequestListener<NTRouteResult>() {
+            NTRouteService.executeAsync(param, new ServiceRequestListener<NTRouteResult>() {
                 @Override
-                public void onResponse(NTRouteResult result, String s) {
+                public void onResponse(NTRouteResult result) {
                     ntRouteResult = result;
 
                     // Remove previous graphics.
@@ -320,15 +325,18 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
                             Graphic graphicPinFromLocation = new Graphic(fromPoint, fromMarkerSymbol);
 
                             Point point = null;
-                            for (NTDirection direction : ntRouteResult.getDirections()) {
-                                NTPoint facilityGeometry = direction.getPoint();
-                                point = new Point(facilityGeometry.getX(), facilityGeometry.getY());
-
-                                point = (Point) GeometryEngine.project(point,
-                                        SpatialReference.create(4326),
-                                        SpatialReference.create(102100));
-                                Graphic pointGraphic = new Graphic(point, directionSymbol);
-                                pinGraphicLayer.addGraphic(pointGraphic);
+                            if (ntRouteResult.getDirections() != null) {
+                                for (NTDirection direction : ntRouteResult.getDirections()) {
+                                    NTPoint facilityGeometry = direction.getPoint();
+                                    if (facilityGeometry != null) {
+                                        point = new Point(facilityGeometry.getX(), facilityGeometry.getY());
+                                    }
+                                    point = (Point) GeometryEngine.project(point,
+                                            SpatialReference.create(4326),
+                                            SpatialReference.create(102100));
+                                    Graphic pointGraphic = new Graphic(point, directionSymbol);
+                                    pinGraphicLayer.addGraphic(pointGraphic);
+                                }
                             }
                             Graphic graphicPinToLocation = new Graphic(point, destMarkerSymbol);
                             pinGraphicLayer.addGraphic(graphicPinToLocation);
@@ -342,7 +350,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
                 }
 
                 @Override
-                public void onError(String errorMessage) {
+                public void onError(String errorMessage, int statusCode) {
                     Toast.makeText(RouteActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                 }
             });
@@ -366,6 +374,24 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
                 Intent intent = new Intent(RouteActivity.this, DirectionActivity.class);
                 intent.putExtra("Results_RouteDirections", arrResultRouteDirection);
                 intent.putExtra("ResultLength", arrResultLength);
+                startActivity(intent);
+            }
+        }
+    };
+
+    View.OnClickListener btnSearchClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (ntRouteResult != null && ntRouteResult.getDirections() != null) {
+                NTDirection[] directions = ntRouteResult.getDirections();
+                int size = directions.length;
+
+                ArrayList<NTPoint> pointList = new ArrayList<>(size);
+                for (NTDirection direction : directions) {
+                    pointList.add(direction.getPoint());
+                }
+                Intent intent = new Intent(RouteActivity.this, SearchAlongRouteActivity.class);
+                intent.putExtra("points", pointList);
                 startActivity(intent);
             }
         }
@@ -405,7 +431,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
     //Set state bottom sheet
     @Override
     public void onBackPressed() {
-        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else {
             super.onBackPressed();

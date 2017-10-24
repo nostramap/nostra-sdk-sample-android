@@ -49,7 +49,7 @@
         android:id="@+id/txvAddInfo"
         android:text="บจ. มานะชัยบริการ"
         android:textSize="13sp"
-        android:textColor="@color/green"
+        android:textColor="@color/colorGreen"
         android:ellipsize="end"
         android:maxLines="1"
         android:layout_alignLeft="@+id/txvName"

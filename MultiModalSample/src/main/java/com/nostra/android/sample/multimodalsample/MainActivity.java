@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -43,17 +44,19 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import th.co.nostrasdk.Base.IServiceRequestListener;
-import th.co.nostrasdk.Base.NTMapPermissionService;
-import th.co.nostrasdk.Base.NTMultiModalTransportService;
-import th.co.nostrasdk.Base.NTSDKEnvironment;
-import th.co.nostrasdk.Parameter.Class.NTLocation;
-import th.co.nostrasdk.Parameter.Class.NTMultiModalDirection;
-import th.co.nostrasdk.Parameter.Constant.NTMultiModalTransportMode;
-import th.co.nostrasdk.Parameter.NTMultiModalTransportParameter;
-import th.co.nostrasdk.Result.NTMapPermissionResult;
-import th.co.nostrasdk.Result.NTMapPermissionResultSet;
-import th.co.nostrasdk.Result.NTMultiModalTransportResult;
+import th.co.nostrasdk.NTSDKEnvironment;
+import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.map.NTMapPermissionResult;
+import th.co.nostrasdk.map.NTMapPermissionResultSet;
+import th.co.nostrasdk.map.NTMapPermissionService;
+import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTLocation;
+import th.co.nostrasdk.network.transport.NTMultiModalDirection;
+import th.co.nostrasdk.network.transport.NTMultiModalRoute;
+import th.co.nostrasdk.network.transport.NTMultiModalTransportParameter;
+import th.co.nostrasdk.network.transport.NTMultiModalTransportResult;
+import th.co.nostrasdk.network.transport.NTMultiModalTransportService;
+import th.co.nostrasdk.network.transport.NTMultiModalTransportationMode;
 
 public class MainActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;
@@ -102,9 +105,9 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_multimodal);
 
-        // Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // Setting Client ID
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
         edtToLocation = (EditText) findViewById(R.id.edtToLocation);
@@ -132,15 +135,17 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
 
     //Add map and current location
     private void initialMap() {
-        NTMapPermissionService.executeAsync(new IServiceRequestListener<NTMapPermissionResultSet>() {
+        NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
-            public void onResponse(NTMapPermissionResultSet result, String responseCode) {
+            public void onResponse(NTMapPermissionResultSet result) {
                 ntMapResults = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
-                    String url = map.getServiceUrl_L();
-                    String token = map.getServiceToken_L();
-                    String referrer = "Referrer";    // TODO: Insert referrer
+                    NTMapServiceInfo info = map.getLocalService();
+                    String url = info.getServiceUrl();
+                    String token = info.getServiceToken();
+                    // TODO: Insert referrer
+                    String referrer = "REFERRER";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);
@@ -155,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMessage, int statusCode) {
                 Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
@@ -212,12 +217,12 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         if (requestCode == toLocation && resultCode == RESULT_OK) {
             toLocationCenterX = (float) data.getExtras().getDouble("CenterX");
             toLocationCenterY = (float) data.getExtras().getDouble("CenterY");
-            edtToLocation.setText(" To_Location");
+            edtToLocation.setText(R.string.to_location);
             pinMarkOnMap();
         } else if (requestCode == fromLocation && resultCode == RESULT_OK) {
             fromLocationCenterX = (float) data.getExtras().getDouble("CenterX");
             fromLocationCenterY = (float) data.getExtras().getDouble("CenterY");
-            edtFromLocation.setText(" From_Location");
+            edtFromLocation.setText(R.string.from_location);
             pinMarkOnMap();
         } else if (requestCode == travelCode && resultCode == RESULT_OK) {
             resultTravel = data.getExtras().getStringArrayList("resultTravel");
@@ -273,32 +278,35 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                     ResultMode[i] = resultTravel.get(i);
                     String travel = ResultMode[i];
                     if (travel.equals(airplane)) {
-                        mode[i] = NTMultiModalTransportMode.AIR;
+                        mode[i] = NTMultiModalTransportationMode.AIR;
                     } else if (travel.equals(bus)) {
-                        mode[i] = NTMultiModalTransportMode.BUS;
+                        mode[i] = NTMultiModalTransportationMode.BUS;
                     } else if (travel.equals(mrt)) {
-                        mode[i] = NTMultiModalTransportMode.MRT;
+                        mode[i] = NTMultiModalTransportationMode.MRT;
                     } else if (travel.equals(bts)) {
-                        mode[i] = NTMultiModalTransportMode.BTS;
+                        mode[i] = NTMultiModalTransportationMode.BTS;
                     } else if (travel.equals(brt)) {
-                        mode[i] = NTMultiModalTransportMode.BRT;
+                        mode[i] = NTMultiModalTransportationMode.BRT;
                     } else if (travel.equals(airportRailLink)) {
-                        mode[i] = NTMultiModalTransportMode.ARL;
+                        mode[i] = NTMultiModalTransportationMode.ARL;
                     } else if (travel.equals(rail)) {
-                        mode[i] = NTMultiModalTransportMode.RAIL;
+                        mode[i] = NTMultiModalTransportationMode.RAIL;
                     } else if (travel.equals(boat)) {
-                        mode[i] = NTMultiModalTransportMode.BOAT;
+                        mode[i] = NTMultiModalTransportationMode.BOAT;
                     } else if (travel.equals(bmta)) {
-                        mode[i] = NTMultiModalTransportMode.BMTA;
+                        mode[i] = NTMultiModalTransportationMode.BMTA;
                     }
                 }
 
                 NTMultiModalTransportParameter param = new NTMultiModalTransportParameter(stops, mode);
-                NTMultiModalTransportService.executeAsync(param, new IServiceRequestListener<NTMultiModalTransportResult>() {
+                NTMultiModalTransportService.executeAsync(param, new ServiceRequestListener<NTMultiModalTransportResult>() {
                     @Override
-                    public void onResponse(NTMultiModalTransportResult result, String responseCode) {
+                    public void onResponse(NTMultiModalTransportResult result) {
                         try {
-                            directions = result.getMinute().getDirections();
+                            NTMultiModalRoute minute = result.getMinute();
+                            if (minute != null) {
+                                directions = minute.getDirections();
+                            }
                             pinGraphicToLocation.removeAll();
                             pinGraphicFromLocation.removeAll();
                             pinGraphicLayer.removeAll();
@@ -310,34 +318,42 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                                 mapGeometry = GeometryEngine.jsonToGeometry(parser);
                                 polyline = (Polyline) GeometryEngine.project(mapGeometry.getGeometry(), INPUT_SR, OUTPUT_SR);
                                 lineGraphicLayer.addGraphic(new Graphic(polyline, new SimpleLineSymbol
-                                        (getResources().getColor(R.color.colorGreen), 5)));
+                                        (ContextCompat.getColor(getApplicationContext(), R.color.colorGreen), 5)));
 
                                 SimpleMarkerSymbol SymbolCircle = new SimpleMarkerSymbol
-                                        (getResources().getColor(R.color.colorLightGreen), 10,
+                                        (ContextCompat.getColor(getApplicationContext(), R.color.colorLightGreen), 10,
                                                 SimpleMarkerSymbol.STYLE.CIRCLE);
                                 List<double[]> PathCircle = directions[i].getPath();
-                                double[] Circle = PathCircle.get(0);
-                                Point point = GeometryEngine.project(Circle[0], Circle[1], OUTPUT_SR);
-                                Graphic pointGraphic = new Graphic(point, SymbolCircle);
-                                SymbolCircleGraphicsLayer.addGraphic(pointGraphic);
+                                if (PathCircle != null) {
+                                    double[] Circle = PathCircle.get(0);
+                                    Point point = GeometryEngine.project(Circle[0], Circle[1], OUTPUT_SR);
+                                    Graphic pointGraphic = new Graphic(point, SymbolCircle);
+                                    SymbolCircleGraphicsLayer.addGraphic(pointGraphic);
+                                }
+
                             }
                             PictureMarkerSymbol pinFinish = new PictureMarkerSymbol(MainActivity.this,
-                                    getResources().getDrawable(R.drawable.flag));
+                                    ContextCompat.getDrawable(getApplicationContext(), R.drawable.flag));
                             List<double[]> Path = directions[0].getPath();
-                            double[] firstPoint = Path.get(0);
-                            Point point = GeometryEngine.project(firstPoint[0], firstPoint[1], OUTPUT_SR);
-                            Graphic graphicPintoLocation = new Graphic(point, pinFinish);
-
-                            PictureMarkerSymbol pinStart = new PictureMarkerSymbol(MainActivity.this,
-                                    getResources().getDrawable(R.drawable.flag_des));
                             List<double[]> Path2 = directions[directions.length - 1].getPath();
-                            double[] lastPoint = Path2.get(Path2.size() - 1);
-                            Point point2 = GeometryEngine.project(lastPoint[0], lastPoint[1], OUTPUT_SR);
-                            Graphic graphicPinFromLocation = new Graphic(point2, pinStart);
+                            if (Path != null && Path2 != null) {
+                                double[] firstPoint = Path.get(0);
+                                Point point = GeometryEngine.project(firstPoint[0], firstPoint[1], OUTPUT_SR);
+                                Graphic graphicPintoLocation = new Graphic(point, pinFinish);
 
-                            pinGraphicLayer.addGraphics(new Graphic[]{graphicPintoLocation, graphicPinFromLocation});
+                                PictureMarkerSymbol pinStart = new PictureMarkerSymbol(MainActivity.this,
+                                        ContextCompat.getDrawable(getApplicationContext(), R.drawable.flag_des));
+                                double[] lastPoint = Path2.get(Path2.size() - 1);
+                                Point point2 = GeometryEngine.project(lastPoint[0], lastPoint[1], OUTPUT_SR);
+                                Graphic graphicPinFromLocation = new Graphic(point2, pinStart);
+
+                                pinGraphicLayer.addGraphics(new Graphic[]{graphicPintoLocation, graphicPinFromLocation});
+                            }
                             relativeLayout.setVisibility(View.VISIBLE);
-                            totalMeter = result.getMeter().getLength();
+                            NTMultiModalRoute meterResult = result.getMeter();
+                            if (meterResult!=null){
+                                totalMeter = meterResult.getLength();
+                            }
                             totalMinute = result.getMinute().getTime();
                             int meter = (int) totalMeter;
                             txvMinMeter.setText(String.valueOf(df.format(totalMinute) + "Min" + "(" +
@@ -348,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                     }
 
                     @Override
-                    public void onError(String errorMessage) {
+                    public void onError(String errorMessage, int statusCode) {
                         Toast.makeText(getApplication(), errorMessage, Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -403,7 +419,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         if (toLocationCenterX != 0 && toLocationCenterY != 0) {
             pointToLocation = new Point(toLocationCenterX, toLocationCenterY);
             PictureMarkerSymbol pinMarkToLocation = new PictureMarkerSymbol(MainActivity.this,
-                    getResources().getDrawable(R.drawable.flag));
+                    ContextCompat.getDrawable(this,R.drawable.flag));
             Graphic graphic = new Graphic(pointToLocation, pinMarkToLocation);
             pinGraphicToLocation.addGraphic(graphic);
             mapView.addLayer(pinGraphicToLocation);
@@ -415,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         if (fromLocationCenterX != 0 && fromLocationCenterY != 0) {
             pointFromLocation = new Point(fromLocationCenterX, fromLocationCenterY);
             PictureMarkerSymbol pinMarkToLocation = new PictureMarkerSymbol(MainActivity.this,
-                    getResources().getDrawable(R.drawable.flag_des));
+                    ContextCompat.getDrawable(this,R.drawable.flag_des));
             Graphic graphic = new Graphic(pointFromLocation, pinMarkToLocation);
             pinGraphicFromLocation.addGraphic(graphic);
             mapView.addLayer(pinGraphicFromLocation);
@@ -442,8 +458,8 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                         double locX = loc.getLongitude();
                         Point wgsPoint = new Point(locX, locY);
                         mapPoint = (Point) GeometryEngine.project(wgsPoint,
-                                        SpatialReference.create(4326),
-                                        mapView.getSpatialReference());
+                                SpatialReference.create(4326),
+                                mapView.getSpatialReference());
 
                         Unit mapUnit = mapView.getSpatialReference().getUnit();
                         double zoomWidth = Unit.convertUnits(5,
