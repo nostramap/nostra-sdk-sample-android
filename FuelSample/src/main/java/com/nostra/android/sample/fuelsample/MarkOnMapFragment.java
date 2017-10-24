@@ -97,7 +97,7 @@ public class MarkOnMapFragment extends Fragment implements OnStatusChangedListen
                     String url = info.getServiceUrl();
                     String token = info.getServiceToken();
                     // TODO: Insert referrer
-                    String referrer = "geotalent_dmd.nostramap.com";
+                    String referrer = "REFERRER";
 
                     UserCredentials credentials = new UserCredentials();
                     credentials.setUserToken(token, referrer);

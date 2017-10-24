@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_fuel);
 
         // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("GpaFVfndCwAsINg8V7ruX9DNKvwyOOg(OtcKjh7dfAyIppXlmS9I)Q1mT8X0W685UxrXVI6V7XuNSRz7IyuXWSm=====2", this);
+        NTSDKEnvironment.setEnvironment("API_KEY", this);
         // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
@@ -28,21 +28,5 @@ public class MainActivity extends AppCompatActivity {
                 AdminPolyFragment.class, null);
         tabHost.addTab(tabHost.newTabSpec("tab2").setIndicator("Mark on map"),
                 MarkOnMapFragment.class, null);
-
-        /*
-        TabHost tabHost = (TabHost) findViewById(R.id.tabHost_Search);
-        LocalActivityManager localActivityManager = new LocalActivityManager(this, true);
-        tabHost.setup(localActivityManager);
-        localActivityManager.dispatchCreate(savedInstanceState);
-
-        TabHost.TabSpec spec;
-        Intent activity_tab1 = new Intent(this, AdminPolyFragment.class);
-        spec = tabHost.newTabSpec("Tab1").setIndicator("ADMINPOLY").setContent(activity_tab1);
-        tabHost.addTab(spec);
-
-        Intent activity_tab2 = new Intent(this, MarkOnMapFragment.class);
-        spec = tabHost.newTabSpec("Tab2").setIndicator("MARK ON MAP").setContent(activity_tab2);
-        tabHost.addTab(spec);
-        */
     }
 }

@@ -80,7 +80,7 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         setContentView(R.layout.activity_dynamic_map_content);
 
         // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        NTSDKEnvironment.setEnvironment("API_KEY", this);
         // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 

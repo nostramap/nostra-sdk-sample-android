@@ -80,19 +80,21 @@ public class ListResultsActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             NTAddressSearchResult result = (NTAddressSearchResult) results[position];
-            NTPoint latLon = result.getPoint();
-            Intent intent = new Intent(ListResultsActivity.this, MapActivity.class)
-                    .putExtra("lat", latLon.getY())
-                    .putExtra("lon", latLon.getX())
-                    .putExtra("houseNo", result.getHouseNo())
-                    .putExtra("moo", result.getMoo())
-                    .putExtra("soiL", result.getLocalSoiName())
-                    .putExtra("roadL", result.getAdminLevel4().getLocalName())
-                    .putExtra("adminLevel1L", result.getAdminLevel1().getLocalName())
-                    .putExtra("adminLevel2L", result.getAdminLevel2().getLocalName())
-                    .putExtra("adminLevel3L", result.getAdminLevel3().getLocalName())
-                    .putExtra("postcode", result.getPostcode());
-            startActivity(intent);
+            NTPoint point = result.getPoint();
+            if (point != null) {
+                Intent intent = new Intent(ListResultsActivity.this, MapActivity.class)
+                        .putExtra("lat", point.getY())
+                        .putExtra("lon", point.getX())
+                        .putExtra("houseNo", result.getHouseNo())
+                        .putExtra("moo", result.getMoo())
+                        .putExtra("soiL", result.getLocalSoiName())
+                        .putExtra("roadL", result.getAdminLevel4().getLocalName())
+                        .putExtra("adminLevel1L", result.getAdminLevel1().getLocalName())
+                        .putExtra("adminLevel2L", result.getAdminLevel2().getLocalName())
+                        .putExtra("adminLevel3L", result.getAdminLevel3().getLocalName())
+                        .putExtra("postcode", result.getPostcode());
+                startActivity(intent);
+            }
         }
     };
 

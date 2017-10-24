@@ -59,20 +59,23 @@ import th.co.nostrasdk.network.facility.NTFacilityDirection;
 
 public class ClosestFacilityActivity extends AppCompatActivity
         implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
-    private MapView mapView;
-    private RelativeLayout rllPinOption;
-    private TextView txvPin, txvCancel;
-    private ImageButton imbLocation;
-    private NTMapPermissionResult[] ntMapResults;
 
-    private GraphicsLayer mGraphicsLayer, routeLayer;
+    private MapView mMapView;
+    private RelativeLayout mPinOptionLayout;
+    private TextView mTxvPin;
+    private TextView mTxvCancel;
+    private ImageButton mBtnLocation;
+    private NTMapPermissionResult[] mMapPermissions;
+
+    private GraphicsLayer mGraphicsLayer;
+    private GraphicsLayer mRouteLayer;
     private SpatialReference inSR = SpatialReference.create(SpatialReference.WKID_WGS84);
     private SpatialReference outSR = SpatialReference.create(
             SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE);
     private int pinId = -1;
     private boolean pinOnMap;
 
-    private LocationDisplayManager ldm;
+    private LocationDisplayManager mLocationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,42 +83,42 @@ public class ClosestFacilityActivity extends AppCompatActivity
         setContentView(R.layout.activity_closest_facility);
 
         // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        NTSDKEnvironment.setEnvironment("API_KEY", this);
         // TODO: Setting Client ID
         ArcGISRuntime.setClientId("CLIENT_ID");
 
-        mapView = (MapView) findViewById(R.id.mapView);
-        rllPinOption = (RelativeLayout) findViewById(R.id.rllPinOption);
+        mMapView = (MapView) findViewById(R.id.mapView);
+        mPinOptionLayout = (RelativeLayout) findViewById(R.id.rllPinOption);
 
-        txvPin = (TextView) findViewById(R.id.txvPin);
-        txvPin.setOnClickListener(new View.OnClickListener() {
+        mTxvPin = (TextView) findViewById(R.id.txvPin);
+        mTxvPin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                rllPinOption.setVisibility(View.GONE);
+                mPinOptionLayout.setVisibility(View.GONE);
                 callService();
             }
         });
 
-        txvCancel = (TextView) findViewById(R.id.txvCancel);
-        txvCancel.setOnClickListener(new View.OnClickListener() {
+        mTxvCancel = (TextView) findViewById(R.id.txvCancel);
+        mTxvCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (pinOnMap) {
                     mGraphicsLayer.removeGraphic(pinId);
                     pinOnMap = false;
                 }
-                rllPinOption.setVisibility(View.GONE);
+                mPinOptionLayout.setVisibility(View.GONE);
             }
         });
 
-        imbLocation = (ImageButton) findViewById(R.id.imbLocation);
-        imbLocation.setOnClickListener(new View.OnClickListener() {
+        mBtnLocation = (ImageButton) findViewById(R.id.imbLocation);
+        mBtnLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // pan to current location
-                Point locationPoint = ldm.getPoint();
+                Point locationPoint = mLocationManager.getPoint();
                 if (locationPoint != null) {
-                    mapView.centerAt(locationPoint, true);
+                    mMapView.centerAt(locationPoint, true);
                 }
             }
         });
@@ -124,9 +127,9 @@ public class ClosestFacilityActivity extends AppCompatActivity
         LocationManager manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                 manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            ldm = mapView.getLocationDisplayManager();
-            ldm.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-            ldm.start();
+            mLocationManager = mMapView.getLocationDisplayManager();
+            mLocationManager.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
+            mLocationManager.start();
         }
         initializeMap();
     }
@@ -135,7 +138,7 @@ public class ClosestFacilityActivity extends AppCompatActivity
         NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
             public void onResponse(NTMapPermissionResultSet result) {
-                ntMapResults = result.getResults();
+                mMapPermissions = result.getResults();
                 NTMapPermissionResult map = getThailandBasemap();
                 if (map != null) {
                     NTMapServiceInfo info = map.getLocalService();
@@ -149,14 +152,14 @@ public class ClosestFacilityActivity extends AppCompatActivity
                     credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
 
                     ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
-                    mapView.addLayer(layer);
+                    mMapView.addLayer(layer);
                 }
                 // Add graphic layer for add pin and route
-                routeLayer = new GraphicsLayer();
-                mapView.addLayer(routeLayer);
+                mRouteLayer = new GraphicsLayer();
+                mMapView.addLayer(mRouteLayer);
 
                 mGraphicsLayer = new GraphicsLayer();
-                mapView.addLayer(mGraphicsLayer);
+                mMapView.addLayer(mGraphicsLayer);
             }
 
             @Override
@@ -164,9 +167,9 @@ public class ClosestFacilityActivity extends AppCompatActivity
                 Toast.makeText(ClosestFacilityActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
-        mapView.setOnStatusChangedListener(this);
-        mapView.setOnSingleTapListener(this);
-        mapView.setOnLongPressListener(this);
+        mMapView.setOnStatusChangedListener(this);
+        mMapView.setOnSingleTapListener(this);
+        mMapView.setOnLongPressListener(this);
     }
 
     private void callService() {
@@ -219,7 +222,7 @@ public class ClosestFacilityActivity extends AppCompatActivity
                                         SpatialReference.create(4326),
                                         SpatialReference.create(102100));
                                 Graphic routeGraphic = new Graphic(geometry, lineSymbol);
-                                routeLayer.addGraphic(routeGraphic);
+                                mRouteLayer.addGraphic(routeGraphic);
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -237,7 +240,7 @@ public class ClosestFacilityActivity extends AppCompatActivity
     }
 
     private NTMapPermissionResult getThailandBasemap() {
-        for (NTMapPermissionResult result : ntMapResults) {
+        for (NTMapPermissionResult result : mMapPermissions) {
             // Thailand basemap service id is 2
             if (result.getServiceId() == 2) {
                 return result;
@@ -299,7 +302,7 @@ public class ClosestFacilityActivity extends AppCompatActivity
             envelope.merge(siamParagon);
 
             // zoom to the envelope
-            mapView.setExtent(envelope, 200);
+            mMapView.setExtent(envelope, 200);
         }
     }
 
@@ -311,10 +314,10 @@ public class ClosestFacilityActivity extends AppCompatActivity
             pinOnMap = false;
         }
         // clear all routes
-        routeLayer.removeAll();
+        mRouteLayer.removeAll();
 
-        if (rllPinOption.getVisibility() == View.VISIBLE) {
-            rllPinOption.setVisibility(View.GONE);
+        if (mPinOptionLayout.getVisibility() == View.VISIBLE) {
+            mPinOptionLayout.setVisibility(View.GONE);
         }
     }
 
@@ -326,9 +329,9 @@ public class ClosestFacilityActivity extends AppCompatActivity
             pinOnMap = false;
         }
         // Clear all routes
-        routeLayer.removeAll();
+        mRouteLayer.removeAll();
         // Draw pin on map
-        Point p = mapView.toMapPoint(x, y);
+        Point p = mMapView.toMapPoint(x, y);
 
         Drawable pinDrawable = ResourcesCompat.getDrawable(
                 getResources(), R.drawable.pin_markonmap, getTheme());
@@ -336,27 +339,27 @@ public class ClosestFacilityActivity extends AppCompatActivity
         pinId = mGraphicsLayer.addGraphic(new Graphic(p, pin));
         pinOnMap = true;
 
-        rllPinOption.setVisibility(View.VISIBLE);
+        mPinOptionLayout.setVisibility(View.VISIBLE);
         return false;
     }
 
     @Override
     protected void onPause() {
-        ldm.pause();
-        mapView.pause();
+        mLocationManager.pause();
+        mMapView.pause();
         super.onPause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mapView.unpause();
-        ldm.resume();
+        mMapView.unpause();
+        mLocationManager.resume();
     }
 
     @Override
     protected void onDestroy() {
-        ldm.stop();
+        mLocationManager.stop();
         super.onDestroy();
     }
 }

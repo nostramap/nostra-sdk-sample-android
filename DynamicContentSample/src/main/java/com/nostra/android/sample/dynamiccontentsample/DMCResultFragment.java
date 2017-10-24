@@ -70,7 +70,7 @@ public class DMCResultFragment extends Fragment {
         parameter.setSortBy(NTDynamicContentSorting.NAME_IN_ASCENDING);
         parameter.setNumberOfResult(numberOfReturn);
         parameter.setPage(pageNumber);
-        parameter.setRadius(2000);
+        parameter.setRadius(10);
 
         // Call service
         NTDynamicContentService.executeAsync(parameter, new ServiceRequestListener<NTDynamicContentResultSet>() {

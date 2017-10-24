@@ -11,11 +11,21 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/txvHeader" />
 
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="16dp"
+        android:layout_marginRight="16dp"
+        android:contentDescription="@null"
+        android:src="@drawable/logo_watermark_onmap" />
+
     <TextView
         android:id="@+id/txvHeader"
         android:layout_width="match_parent"
         android:layout_height="58dp"
-        android:background="@color/green"
+        android:background="@color/colorGreen"
         android:gravity="center"
         android:text="CLOSEST FACILITY"
         android:textColor="@android:color/white"
@@ -66,7 +76,7 @@
             android:layout_marginRight="20dp"
             android:gravity="center_vertical"
             android:text="PIN LOCATION"
-            android:textColor="@color/green"
+            android:textColor="@color/colorGreen"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -80,20 +90,8 @@
             android:layout_toStartOf="@+id/txvPin"
             android:gravity="center_vertical"
             android:text="CANCEL"
-            android:textColor="@color/green"
+            android:textColor="@color/colorGreen"
             android:textSize="16sp"
             android:textStyle="bold" />
-
     </RelativeLayout>
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginRight="16dp"
-        android:contentDescription="@null"
-        android:src="@drawable/logo_watermark_onmap" />
-
 </RelativeLayout>

@@ -19,7 +19,7 @@
             android:textColor="@android:color/white"
             android:textStyle="bold"
             android:gravity="center"
-            android:background="@color/green"
+            android:background="@color/colorGreen"
             android:layout_width="match_parent"
             android:layout_height="58dp" />
 
@@ -61,7 +61,7 @@
 
             <RelativeLayout
                 android:id="@+id/rllNameAddr"
-                android:background="@color/green"
+                android:background="@color/colorGreen"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="100dp">
@@ -129,7 +129,7 @@
                     <ImageView
                         android:id="@+id/imvMood"
                         app:srcCompat="@drawable/ic_mood"
-                        android:tint="@color/green"
+                        android:tint="@color/colorGreen"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
@@ -158,7 +158,7 @@
                     <ImageView
                         android:id="@+id/imvInfo"
                         app:srcCompat="@drawable/ic_info"
-                        android:tint="@color/green"
+                        android:tint="@color/colorGreen"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
@@ -187,7 +187,7 @@
                     <ImageView
                         android:id="@+id/imvTel"
                         app:srcCompat="@drawable/ic_phone"
-                        android:tint="@color/green"
+                        android:tint="@color/colorGreen"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
@@ -216,7 +216,7 @@
                     <ImageView
                         android:id="@+id/imvWeb"
                         app:srcCompat="@drawable/ic_public"
-                        android:tint="@color/green"
+                        android:tint="@color/colorGreen"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
