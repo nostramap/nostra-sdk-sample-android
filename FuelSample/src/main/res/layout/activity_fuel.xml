@@ -19,7 +19,7 @@
             android:textSize="20sp" />
     </RelativeLayout>
 
-    <TabHost
+    <android.support.v4.app.FragmentTabHost
         android:id="@+id/tabHost_Search"
         style="@style/tabStyle"
         android:layout_width="match_parent"
@@ -42,7 +42,7 @@
                 android:layout_height="match_parent"
                 android:background="#FFFFFF" />
         </LinearLayout>
-    </TabHost>
+    </android.support.v4.app.FragmentTabHost>
 </LinearLayout>
 
 

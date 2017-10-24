@@ -14,7 +14,6 @@ import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.CoordinateConversion;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
@@ -24,7 +23,6 @@ import com.esri.core.symbol.PictureMarkerSymbol;
 
 import java.util.Locale;
 
-import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.map.NTMapPermissionResult;
 import th.co.nostrasdk.map.NTMapPermissionResultSet;
@@ -56,6 +54,18 @@ public class PinMarkerActivity extends AppCompatActivity {
                 mapView.centerAt(point, true);
             }
         });
+    }
+
+    @Override
+    protected void onPause() {
+        mapView.pause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.unpause();
     }
 
     private void initializeMap() {
@@ -132,8 +142,8 @@ public class PinMarkerActivity extends AppCompatActivity {
         final TextView txvNameL = (TextView) view.findViewById(R.id.txvNameL);
         txvNameL.setText(Name_L);
 
-        final TextView txvlocation = (TextView) view.findViewById(R.id.txvLocation);
-        txvlocation.setText(String.format(Locale.ENGLISH, "%.6f", lat) +
+        final TextView txvLocation = (TextView) view.findViewById(R.id.txvLocation);
+        txvLocation.setText(String.format(Locale.ENGLISH, "%.6f", lat) +
                 "  " + String.format(Locale.ENGLISH, "%.6f", lon));
 
         final ImageView imvPin = (ImageView) view.findViewById(R.id.imvPin);
