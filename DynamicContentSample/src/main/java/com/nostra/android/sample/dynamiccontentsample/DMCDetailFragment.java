@@ -20,16 +20,27 @@ import java.net.URL;
 import th.co.nostrasdk.query.dynamic.NTDynamicContentResult;
 
 public class DMCDetailFragment extends Fragment {
-    private static final String DMC_RESULT = "DMC_RESULT";
+    private static final String RESULT = "DMC_RESULT";
 
-    private NTDynamicContentResult dmcResult;
+    private PoiItem poiItem;
 
-    public DMCDetailFragment() {}
+    public DMCDetailFragment() {
+    }
 
     static DMCDetailFragment newInstance(NTDynamicContentResult dmcResult) {
+        PoiItem item = new PoiItem();
+        item.setLocalName(dmcResult.getLocalName());
+        item.setLocalAddress(dmcResult.getLocalAddress());
+        item.setLocalDetail(dmcResult.getLocalDetail());
+        item.setTelephone(dmcResult.getTelephoneNumber());
+        item.setWebsite(dmcResult.getWebsite());
+        item.setMediaUrl(dmcResult.getMediaThumbnailUrl());
+        item.setLatitude(dmcResult.getPoint().getY());
+        item.setLongitude(dmcResult.getPoint().getX());
+
         DMCDetailFragment fragment = new DMCDetailFragment();
         Bundle args = new Bundle();
-        args.putParcelable(DMC_RESULT, dmcResult);
+        args.putParcelable(RESULT, item);
         fragment.setArguments(args);
         return fragment;
     }
@@ -38,7 +49,7 @@ public class DMCDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            dmcResult = getArguments().getParcelable(DMC_RESULT);
+            poiItem = getArguments().getParcelable(RESULT);
         }
     }
 
@@ -58,42 +69,42 @@ public class DMCDetailFragment extends Fragment {
         });
 
         ImageView imvPicture = (ImageView) layoutView.findViewById(R.id.imvPicture);
-        if (dmcResult.getMediaThumbnailUrl() != null) {
-            new LoadImageTask(imvPicture).execute(dmcResult.getMediaThumbnailUrl());
+        if (poiItem.getMediaUrl() != null) {
+            new LoadImageTask(imvPicture).execute(poiItem.getMediaUrl());
         }
 
         TextView txvName = (TextView) layoutView.findViewById(R.id.txvName);
-        txvName.setText(dmcResult.getLocalName());
+        txvName.setText(poiItem.getLocalName());
 
         TextView txvAddress = (TextView) layoutView.findViewById(R.id.txvAddress);
-        txvAddress.setText(dmcResult.getLocalAddress());
+        txvAddress.setText(poiItem.getLocalAddress());
 
         RelativeLayout rllDetail = (RelativeLayout) layoutView.findViewById(R.id.rllDetail);
-        if (dmcResult.getLocalDetail() != null) {
+        if (poiItem.getLocalDetail() != null) {
             rllDetail.setVisibility(View.VISIBLE);
             TextView txvDetail = (TextView) layoutView.findViewById(R.id.txvDetail);
-            txvDetail.setText(dmcResult.getLocalDetail());
+            txvDetail.setText(poiItem.getLocalDetail());
         }
 
         RelativeLayout rllInfo = (RelativeLayout) layoutView.findViewById(R.id.rllInfo);
-        if (dmcResult.getLocalName() != null) {
+        if (poiItem.getLocalName() != null) {
             rllInfo.setVisibility(View.VISIBLE);
             TextView txvName2 = (TextView) layoutView.findViewById(R.id.txvName2);
-            txvName2.setText(dmcResult.getLocalName());
+            txvName2.setText(poiItem.getLocalName());
         }
 
         RelativeLayout rllTel = (RelativeLayout) layoutView.findViewById(R.id.rllTel);
-        if (dmcResult.getTelephoneNumber() != null) {
+        if (poiItem.getTelephone() != null) {
             rllTel.setVisibility(View.VISIBLE);
             TextView txvTel = (TextView) layoutView.findViewById(R.id.txvTel);
-            txvTel.setText(dmcResult.getTelephoneNumber());
+            txvTel.setText(poiItem.getTelephone());
         }
 
         RelativeLayout rllWeb = (RelativeLayout) layoutView.findViewById(R.id.rllWeb);
-        if (dmcResult.getWebsite() != null) {
+        if (poiItem.getWebsite() != null) {
             rllWeb.setVisibility(View.VISIBLE);
             TextView txvWeb = (TextView) layoutView.findViewById(R.id.txvWeb);
-            txvWeb.setText(dmcResult.getWebsite());
+            txvWeb.setText(poiItem.getWebsite());
         }
 
         FloatingActionButton fabShare = (FloatingActionButton) layoutView.findViewById(R.id.fabShare);
@@ -102,7 +113,7 @@ public class DMCDetailFragment extends Fragment {
             public void onClick(View v) {
                 // Show share url
                 if (getActivity() instanceof DynamicContentActivity) {
-                    ((DynamicContentActivity) getActivity()).createShareUrl(dmcResult);
+                    ((DynamicContentActivity) getActivity()).createShareUrl(poiItem);
                 }
             }
         });
@@ -113,7 +124,7 @@ public class DMCDetailFragment extends Fragment {
             public void onClick(View v) {
                 // Show location on map
                 if (getActivity() instanceof DynamicContentActivity) {
-                    ((DynamicContentActivity) getActivity()).showOnMap(dmcResult);
+                    ((DynamicContentActivity) getActivity()).showOnMap(poiItem);
                 }
             }
         });

@@ -3,7 +3,7 @@ package com.nostra.android.sample.searchsample;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.common.NTPoint;
 
 public class SearchResult implements Parcelable {
     private String localName;

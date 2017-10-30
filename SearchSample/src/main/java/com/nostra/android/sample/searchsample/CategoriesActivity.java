@@ -15,7 +15,7 @@ import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.info.category.NTCategoryResult;
 import th.co.nostrasdk.info.category.NTCategoryResultSet;
 import th.co.nostrasdk.info.category.NTCategoryService;
-import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.search.location.NTLocationSearchParameter;
 import th.co.nostrasdk.search.location.NTLocationSearchResult;
 import th.co.nostrasdk.search.location.NTLocationSearchResultSet;

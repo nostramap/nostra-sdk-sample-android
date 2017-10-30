@@ -11,7 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
-import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.search.address.NTAddressSearchResult;
 
 public class ListResultsActivity extends Activity {

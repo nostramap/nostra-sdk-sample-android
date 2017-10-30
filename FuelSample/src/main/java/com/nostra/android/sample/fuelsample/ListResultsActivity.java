@@ -11,11 +11,11 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.info.fuel.NTFuelParameter;
 import th.co.nostrasdk.info.fuel.NTFuelResult;
 import th.co.nostrasdk.info.fuel.NTFuelResultSet;
 import th.co.nostrasdk.info.fuel.NTFuelService;
-import th.co.nostrasdk.network.NTPoint;
 
 public class ListResultsActivity extends AppCompatActivity {
     private double getX = 0;

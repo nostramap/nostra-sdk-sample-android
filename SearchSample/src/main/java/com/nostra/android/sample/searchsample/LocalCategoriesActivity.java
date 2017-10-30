@@ -17,7 +17,7 @@ import th.co.nostrasdk.info.category.NTLocalCategoryParameter;
 import th.co.nostrasdk.info.category.NTLocalCategoryResult;
 import th.co.nostrasdk.info.category.NTLocalCategoryResultSet;
 import th.co.nostrasdk.info.category.NTLocalCategoryService;
-import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.search.location.NTLocationSearchParameter;
 import th.co.nostrasdk.search.location.NTLocationSearchResult;
 import th.co.nostrasdk.search.location.NTLocationSearchResultSet;

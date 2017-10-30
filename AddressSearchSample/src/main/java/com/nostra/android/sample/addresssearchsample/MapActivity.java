@@ -38,11 +38,11 @@ import java.util.Map;
 
 import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.map.NTMapPermissionResult;
 import th.co.nostrasdk.map.NTMapPermissionResultSet;
 import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
-import th.co.nostrasdk.network.NTPoint;
 
 public class MapActivity extends AppCompatActivity implements OnStatusChangedListener {
     private MapView mapView;

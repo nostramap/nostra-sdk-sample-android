@@ -12,7 +12,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
 
-import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.common.NTPoint;
 
 public class ListResultsActivityNew extends AppCompatActivity {
     private ListView listView;

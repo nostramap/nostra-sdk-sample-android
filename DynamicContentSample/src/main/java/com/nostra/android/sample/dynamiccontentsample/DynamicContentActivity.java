@@ -44,7 +44,6 @@ import th.co.nostrasdk.map.NTMapPermissionResult;
 import th.co.nostrasdk.map.NTMapPermissionResultSet;
 import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
-import th.co.nostrasdk.network.NTPoint;
 import th.co.nostrasdk.query.dynamic.NTDynamicContentListResult;
 import th.co.nostrasdk.query.dynamic.NTDynamicContentListResultSet;
 import th.co.nostrasdk.query.dynamic.NTDynamicContentListService;
@@ -250,14 +249,13 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         transaction.commit();
     }
 
-    void showOnMap(NTDynamicContentResult dmcResult) {
+    void showOnMap(PoiItem poiItem) {
         // Show result location on map
         frlContainer.setVisibility(View.GONE);
         imvBack.setVisibility(View.VISIBLE);
         imvLayer.setVisibility(View.GONE);
         txvHeader.setText(R.string.display_on_map);
-        NTPoint ladLon = dmcResult.getPoint();
-        Point p = GeometryEngine.project(ladLon.getX(), ladLon.getY(), outSR);
+        Point p = GeometryEngine.project(poiItem.getLongitude(), poiItem.getLatitude(), outSR);
         PictureMarkerSymbol pin = new PictureMarkerSymbol(ContextCompat
                 .getDrawable(this, R.drawable.pin_markonmap));
 
@@ -265,14 +263,14 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         mapView.zoomTo(p, 11);
     }
 
-    void createShareUrl(NTDynamicContentResult dmcResult) {
-        if (dmcResult == null)
+    void createShareUrl(PoiItem poiItem) {
+        if (poiItem == null)
             return;
 
         curtainView.setVisibility(View.VISIBLE);
         rllShare.setVisibility(View.VISIBLE);
-        NTShortLinkParameter param = new NTShortLinkParameter(dmcResult.getLocalName(), new String[]{"ATM", "HOTEL"});
-        param.setLocationDescription(dmcResult.getLocalAddress());
+        NTShortLinkParameter param = new NTShortLinkParameter(poiItem.getLocalName(), new String[]{"ATM", "HOTEL"});
+        param.setLocationDescription(poiItem.getLocalAddress());
         param.setLanguage(NTLanguage.LOCAL);
         param.setLevel(11);
         param.setMapType(NTMapType.STREET_MAP);

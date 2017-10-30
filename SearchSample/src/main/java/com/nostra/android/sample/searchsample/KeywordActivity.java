@@ -18,7 +18,7 @@ import java.util.ArrayList;
 
 import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.common.NTCountry;
-import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.search.autocomplete.NTAutoCompleteSearchParameter;
 import th.co.nostrasdk.search.autocomplete.NTAutoCompleteSearchResultSet;
 import th.co.nostrasdk.search.autocomplete.NTAutoCompleteSearchService;

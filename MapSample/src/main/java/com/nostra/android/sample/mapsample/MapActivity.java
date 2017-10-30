@@ -34,7 +34,7 @@ import th.co.nostrasdk.map.NTMapPermissionResultSet;
 import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
 import th.co.nostrasdk.map.NTMapServiceType;
-import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.common.NTPoint;
 
 public class MapActivity extends AppCompatActivity {
     private ListView lvBaseMap;

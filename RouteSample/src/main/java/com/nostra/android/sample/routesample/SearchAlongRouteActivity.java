@@ -1,7 +1,7 @@
 package com.nostra.android.sample.routesample;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -9,10 +9,11 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
+
 import java.util.ArrayList;
 
 import th.co.nostrasdk.ServiceRequestListener;
-import th.co.nostrasdk.network.NTPoint;
+import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.search.route.NTSearchAlongRouteParameter;
 import th.co.nostrasdk.search.route.NTSearchAlongRouteResult;
 import th.co.nostrasdk.search.route.NTSearchAlongRouteResultSet;
