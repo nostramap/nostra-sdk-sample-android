@@ -26,7 +26,7 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':nostra-sdk-release')
+    compile "th.co.globetech:nostra-sdk:$rootProject.ext.nostraVersion"
     compile "com.android.support:appcompat-v7:$rootProject.ext.androidSupportVersion"
     compile "com.esri.arcgis.android:arcgis-android:$rootProject.ext.arcgisVersion"
 }

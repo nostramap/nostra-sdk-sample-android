@@ -8,5 +8,4 @@ include ':AddressSearchSample',
         ':RouteSample',
         ':SearchSample',
         ':ServiceAreaSample',
-        ':WeatherSample',
-        ':nostra-sdk-release'
+        ':WeatherSample'
