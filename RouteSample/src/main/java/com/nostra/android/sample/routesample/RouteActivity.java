@@ -43,7 +43,6 @@ import com.esri.core.symbol.SimpleMarkerSymbol;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 
-import java.util.ArrayList;
 import java.util.Locale;
 
 import th.co.nostrasdk.NTSDKEnvironment;
@@ -386,12 +385,19 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
                 NTDirection[] directions = ntRouteResult.getDirections();
                 int size = directions.length;
 
-                ArrayList<NTPoint> pointList = new ArrayList<>(size);
-                for (NTDirection direction : directions) {
-                    pointList.add(direction.getPoint());
+                double[] pointX = new double[size];
+                double[] pointY = new double[size];
+                NTPoint point;
+                for (int i = 0; i < size; i++) {
+                    point = directions[i].getPoint();
+                    if (point != null) {
+                        pointX[i] = point.getX();
+                        pointY[i] = point.getY();
+                    }
                 }
                 Intent intent = new Intent(RouteActivity.this, SearchAlongRouteActivity.class);
-                intent.putExtra("points", pointList);
+                intent.putExtra("pointX", pointX);
+                intent.putExtra("pointY", pointY);
                 startActivity(intent);
             }
         }

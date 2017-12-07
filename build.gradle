@@ -5,7 +5,6 @@ buildscript {
         jcenter()
     }
     ext {
-<<<<<<< HEAD
         compileVersion = 25
         minVersion = 19
         targetVersion = 22
@@ -13,11 +12,7 @@ buildscript {
         androidBuildVersion = "25.0.3"
         androidSupportVersion = "25.3.1"
         arcgisVersion = "10.2.8-1"
-        nostraVersion = "3.0.0"
-=======
-        arcgis_version = "10.2.8-1"
-        nostra_sdk_version = "2.0.4"
->>>>>>> ddb2298b2d70d6889d8db814599ae5928d8b0522
+        nostraVersion = "3.0.2"
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.3'

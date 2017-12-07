@@ -9,9 +9,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
-
-import java.util.ArrayList;
-
 import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.search.route.NTSearchAlongRouteParameter;
@@ -45,9 +42,13 @@ public class SearchAlongRouteActivity extends AppCompatActivity implements View.
             case R.id.buttonSearch:
                 Bundle bundle = getIntent().getExtras();
                 if (bundle != null) {
-                    ArrayList<NTPoint> pointList = bundle.getParcelableArrayList("points");
-                    if (pointList != null) {
-                        NTPoint[] points = pointList.toArray(new NTPoint[pointList.size()]);
+                    double[] pointX = bundle.getDoubleArray("pointX");
+                    double[] pointY = bundle.getDoubleArray("pointY");
+                    if (pointX != null && pointY != null) {
+                        NTPoint[] points = new NTPoint[pointX.length];
+                        for (int i = 0; i < pointX.length; i++) {
+                            points[i] = new NTPoint(pointX[i], pointY[i]);
+                        }
                         String keyword = mTxtKeyword.getText().toString();
                         // Perform search
                         performSearch(points, keyword);
