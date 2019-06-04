@@ -1,5 +1,6 @@
 package com.nostra.android.sample.searchsample;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,6 +41,7 @@ public class ResultsAdapter extends BaseAdapter {
         return 0;
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         convertView = LayoutInflater.from(context).inflate(R.layout.row_results, null);
@@ -51,8 +53,8 @@ public class ResultsAdapter extends BaseAdapter {
                 results.get(position).getAdmin3() + "   เขต" +
                 results.get(position).getAdmin2() + "   จังหวัด" +
                 results.get(position).getAdmin1() + "   \n" +
-                String.format(Locale.ENGLISH, "%.6f", results.get(position).getPoint().getY()) + " " +
-                String.format(Locale.ENGLISH, "%.6f", results.get(position).getPoint().getX()));
+                String.format(Locale.ENGLISH, "%.6f", results.get(position).getLatitude()) + " " +
+                String.format(Locale.ENGLISH, "%.6f", results.get(position).getLongitude()));
         return convertView;
     }
 

@@ -12,8 +12,9 @@
         android:id="@+id/imvIcon"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:layout_alignLeft="@+id/txvWeather"
-        android:layout_alignRight="@+id/txvWeather"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
         android:scaleType="fitCenter" />
 

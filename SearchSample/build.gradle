@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.ext.compileVersion
-    buildToolsVersion rootProject.ext.androidBuildVersion
 
     defaultConfig {
         applicationId "com.nostra.android.sample.searchsample"
@@ -23,12 +22,17 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile "th.co.globetech:nostra-sdk:$rootProject.ext.nostraVersion"
-    compile "com.android.support:appcompat-v7:$rootProject.ext.androidSupportVersion"
-    compile "com.esri.arcgis.android:arcgis-android:$rootProject.ext.arcgisVersion"
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation  fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "com.google.code.gson:gson:2.8.5"
+    implementation  "th.co.globetech:nostra-sdk:$rootProject.ext.nostraVersion"
+    implementation  "com.android.support:appcompat-v7:$rootProject.ext.androidSupportVersion"
+    implementation  "com.esri.arcgisruntime:arcgis-android:$rootProject.ext.arcgisVersion"
+    implementation  'com.android.support.constraint:constraint-layout:1.0.2'
 }

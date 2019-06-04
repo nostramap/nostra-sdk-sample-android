@@ -63,7 +63,7 @@ public class CategoriesActivity extends AppCompatActivity implements AdapterView
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         String[] categories = new String[]{ntCategoryResult[position].getCategoryCode()};
         NTPoint point = new NTPoint(lon, lat);
-        NTLocationSearchParameter param = new NTLocationSearchParameter("สาทร", categories);
+        NTLocationSearchParameter param = new NTLocationSearchParameter("", categories);
         param.setPoint(point);
         param.setNumberOfResult(5);
 
@@ -78,7 +78,8 @@ public class CategoriesActivity extends AppCompatActivity implements AdapterView
                             data.getAdminLevel2().getLocalName(),
                             data.getAdminLevel3().getLocalName(),
                             data.getAdminLevel3().getLocalName(),
-                            data.getLocationPoint());
+                            data.getLocationPoint().getY(),
+                            data.getLocationPoint().getX());
                     resultList.add(searchResult);
                 }
                 Intent intent = new Intent(CategoriesActivity.this, ListResultsActivityNew.class);

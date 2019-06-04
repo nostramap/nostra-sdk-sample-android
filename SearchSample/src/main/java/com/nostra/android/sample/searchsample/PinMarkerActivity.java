@@ -1,5 +1,7 @@
 package com.nostra.android.sample.searchsample;
 
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -9,19 +11,21 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.esri.android.map.Callout;
-import com.esri.android.map.GraphicsLayer;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.core.geometry.CoordinateConversion;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.SpatialReference;
-import com.esri.core.io.UserCredentials;
-import com.esri.core.map.Graphic;
-import com.esri.core.symbol.PictureMarkerSymbol;
+import com.esri.arcgisruntime.concurrent.ListenableFuture;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.view.Callout;
+import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
+import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.security.UserCredential;
+import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
 
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.map.NTMapPermissionResult;
@@ -36,7 +40,7 @@ public class PinMarkerActivity extends AppCompatActivity {
     private double lat;
     private double lon;
     private Point point;
-    private GraphicsLayer graphicsLayerPin;
+    private GraphicsOverlay graphicOverlaysPin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,14 +48,14 @@ public class PinMarkerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_pin_marker);
 
         mapView = (MapView) findViewById(R.id.mapView);
-        graphicsLayerPin = new GraphicsLayer();
+        graphicOverlaysPin = new GraphicsOverlay();
         initializeMap();
 
         final ImageView imvCurrentLocation = (ImageView) findViewById(R.id.imvCurrentLocation);
         imvCurrentLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mapView.centerAt(point, true);
+                mapView.setViewpointCenterAsync(point);
             }
         });
     }
@@ -65,7 +69,7 @@ public class PinMarkerActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mapView.unpause();
+        mapView.resume();
     }
 
     private void initializeMap() {
@@ -80,26 +84,32 @@ public class PinMarkerActivity extends AppCompatActivity {
                     String token = info.getServiceToken();
                     String referrer = "REFERRER";    // TODO: Insert referrer
 
-                    UserCredentials credentials = new UserCredentials();
-                    credentials.setUserToken(token, referrer);
-                    credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
+                    UserCredential credentials = UserCredential.createFromToken(token, referrer);
 
-                    ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
-                    mapView.addLayer(layer);
-
+                    ArcGISTiledLayer layer = new ArcGISTiledLayer(url);
+                    layer.setCredential(credentials);
+                    Basemap  baseMap = new Basemap(layer);
+                    ArcGISMap mMap = new ArcGISMap(baseMap);
+                    mapView.setMap(mMap);
+                    mMap.addDoneLoadingListener(onDoneLoadingListener);
                     lat = getIntent().getExtras().getDouble("lat");
                     lon = getIntent().getExtras().getDouble("lon");
-                    point = new Point(lon, lat);
+                    point = new Point(lon, lat, SpatialReferences.getWgs84());
 
-                    String decimalDegrees = CoordinateConversion.pointToDecimalDegrees(point,
-                            SpatialReference.create(SpatialReference.WKID_WGS84), 7);
-                    point = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
-                            SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE));
-                    PictureMarkerSymbol markerSymbol = new PictureMarkerSymbol(PinMarkerActivity.this,
-                            ContextCompat.getDrawable(getApplicationContext(), R.drawable.pin_markonmap));
-                    Graphic graphicPin = new Graphic(point, markerSymbol);
-                    graphicsLayerPin.addGraphic(graphicPin);
-                    mapView.addLayer(graphicsLayerPin);
+                    Drawable drawable = (BitmapDrawable) ContextCompat.getDrawable(getApplicationContext(), R.drawable.pin_markonmap);
+                    ListenableFuture<PictureMarkerSymbol> symbol =
+                            PictureMarkerSymbol.createAsync((BitmapDrawable) drawable);
+
+
+                    try {
+                        Graphic graphicPin = new Graphic(point, symbol.get());
+                        graphicOverlaysPin.getGraphics().add(graphicPin);
+                        mapView.getGraphicsOverlays().add(graphicOverlaysPin);
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
@@ -109,21 +119,19 @@ public class PinMarkerActivity extends AppCompatActivity {
             }
         });
 
-        mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
-            @Override
-            public void onStatusChanged(Object o, STATUS status) {
-                if (status == STATUS.LAYER_LOADED) {
-                    SearchResult results = getIntent().getParcelableExtra("result");
-                    mapCallout = mapView.getCallout();
-                    mapCallout.setContent(loadView(results.getLocalName(), lat, lon));
-                    mapCallout.setOffsetDp(0, 25);
-                    mapCallout.show(point);
-                    mapView.centerAt(point, true);
-                    mapView.zoomToScale(point, 10000);
-                }
-            }
-        });
     }
+
+    private Runnable onDoneLoadingListener = new Runnable() {
+        @Override
+        public void run() {
+            SearchResult results = getIntent().getParcelableExtra("result");
+            mapCallout = mapView.getCallout();
+            mapCallout.setContent(loadView(results.getLocalName(), lat, lon));
+            mapCallout.setLocation(point);
+            mapView.setViewpointCenterAsync(point, 10000);
+        }
+    };
+
 
     private NTMapPermissionResult getThailandBasemap() {
         for (NTMapPermissionResult result : ntMapResults) {

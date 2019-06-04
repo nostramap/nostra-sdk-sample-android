@@ -1,15 +1,14 @@
 package com.nostra.android.sample.routesample;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.location.Location;
-import android.location.LocationListener;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -18,32 +17,35 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.esri.android.map.GraphicsLayer;
-import com.esri.android.map.LocationDisplayManager;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.event.OnSingleTapListener;
-import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.android.runtime.ArcGISRuntime;
-import com.esri.core.geometry.CoordinateConversion;
-import com.esri.core.geometry.Envelope;
-import com.esri.core.geometry.Geometry;
-import com.esri.core.geometry.GeometryEngine;
-import com.esri.core.geometry.LinearUnit;
-import com.esri.core.geometry.MapGeometry;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.SpatialReference;
-import com.esri.core.geometry.Unit;
-import com.esri.core.io.UserCredentials;
-import com.esri.core.map.Graphic;
-import com.esri.core.symbol.PictureMarkerSymbol;
-import com.esri.core.symbol.SimpleLineSymbol;
-import com.esri.core.symbol.SimpleMarkerSymbol;
-
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
+import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
+import com.esri.arcgisruntime.geometry.CoordinateFormatter;
+import com.esri.arcgisruntime.geometry.Envelope;
+import com.esri.arcgisruntime.geometry.Geometry;
+import com.esri.arcgisruntime.geometry.GeometryEngine;
+import com.esri.arcgisruntime.geometry.LinearUnit;
+import com.esri.arcgisruntime.geometry.LinearUnitId;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedEvent;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedListener;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.Viewpoint;
+import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener;
+import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
+import com.esri.arcgisruntime.mapping.view.LocationDisplay;
+import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.mapping.view.WrapAroundMode;
+import com.esri.arcgisruntime.security.UserCredential;
+import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
@@ -61,7 +63,7 @@ import th.co.nostrasdk.network.route.NTRouteParameter;
 import th.co.nostrasdk.network.route.NTRouteResult;
 import th.co.nostrasdk.network.route.NTRouteService;
 
-public class RouteActivity extends AppCompatActivity implements OnStatusChangedListener {
+public class RouteActivity extends AppCompatActivity implements LoadStatusChangedListener {
 
     private static final int REQ_FROM_LOCATION = 0;
     private static final int REQ_TO_LOCATION = 1;
@@ -72,17 +74,12 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
     private Button btnVehicle;
     private TextView txvMinutes;
     private RelativeLayout relativeLayout;
-    private ListView lvVehicle;
-    private ImageView imvCurrentLocation;
-    private ImageButton imbNavigation;
-    private ImageButton imbDirection;
-    private ImageButton imbSearch;
 
-    private GraphicsLayer lineSymbolGraphicLayer = new GraphicsLayer();
-    private GraphicsLayer pinGraphicLayer = new GraphicsLayer();
+    private GraphicsOverlay lineSymbolGraphicLayer = new GraphicsOverlay(GraphicsOverlay.RenderingMode.STATIC);
+    private GraphicsOverlay pinGraphicLayer = new GraphicsOverlay();
 
     private NTMapPermissionResult[] ntMapResults;
-    private LocationDisplayManager ldm;
+    private LocationDisplay locationDisplay;
     private BottomSheetBehavior bottomSheetBehavior;
     private double fromLon = 0;
     private double fromLat = 0;
@@ -90,51 +87,58 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
     private double toLat = 0;
     private int positionGo;
 
-    private Point mapPoint;
     private NTRouteResult ntRouteResult;
 
     private PictureMarkerSymbol fromMarkerSymbol;
     private PictureMarkerSymbol destMarkerSymbol;
     private SimpleMarkerSymbol directionSymbol;
     private SimpleLineSymbol lineSymbol;
+    private Envelope lastExtent;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_route);
 
         // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
-        // TODO: Setting Client ID
-        ArcGISRuntime.setClientId("CLIENT_ID");
+        NTSDKEnvironment.setEnvironment("API KEY", this);
+        // TODO: Setting Licence ID
+        ArcGISRuntimeEnvironment.setLicense("Licence_ID");
 
-        mapView = (MapView) findViewById(R.id.mapView);
-        mapView.enableWrapAround(true);
+        mapView = findViewById(R.id.mapView);
+        mapView.setWrapAroundMode(WrapAroundMode.DISABLED);
 
-        lvVehicle = (ListView) findViewById(R.id.lvVehicle);
-        btnVehicle = (Button) findViewById(R.id.btnVehicle);
-        txvMinutes = (TextView) findViewById(R.id.txvMinutes);
-        relativeLayout = (RelativeLayout) findViewById(R.id.layoutMinute);
-        edtFromLocation = (Button) findViewById(R.id.edtFromLocation);
-        edtToLocation = (Button) findViewById(R.id.edtToLocation);
-        imbNavigation = (ImageButton) findViewById(R.id.imbNavigation);
-        imbDirection = (ImageButton) findViewById(R.id.imbDirection);
-        imbSearch = (ImageButton) findViewById(R.id.imbSearch);
-        imvCurrentLocation = (ImageButton) findViewById(R.id.imbCurrentLocation);
+        ListView lvVehicle = findViewById(R.id.lvVehicle);
+        btnVehicle = findViewById(R.id.btnVehicle);
+        txvMinutes = findViewById(R.id.txvMinutes);
+        relativeLayout = findViewById(R.id.layoutMinute);
+        edtFromLocation = findViewById(R.id.edtFromLocation);
+        edtToLocation = findViewById(R.id.edtToLocation);
+        ImageButton imbNavigation = findViewById(R.id.imbNavigation);
+        ImageButton imbDirection = findViewById(R.id.imbDirection);
+        ImageButton imbSearch = findViewById(R.id.imbSearch);
+        ImageView imvCurrentLocation = findViewById(R.id.imbCurrentLocation);
         bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomSheet));
 
-        // Create symbols
-        Drawable fromFlagDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.flag, getTheme());
-        fromMarkerSymbol = new PictureMarkerSymbol(fromFlagDrawable);
+        // Create symbols'
+        try {
+            BitmapDrawable fromFlagDrawable = (BitmapDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.flag, getTheme());
+            fromMarkerSymbol = PictureMarkerSymbol.createAsync(fromFlagDrawable).get();
 
-        Drawable destFlagDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.flag_des, getTheme());
-        destMarkerSymbol = new PictureMarkerSymbol(destFlagDrawable);
-
+            BitmapDrawable destFlagDrawable = (BitmapDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.flag_des, getTheme());
+            destMarkerSymbol = PictureMarkerSymbol.createAsync(destFlagDrawable).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
         int lightGreen = ResourcesCompat.getColor(getResources(), R.color.colorLightGreen, getTheme());
-        directionSymbol = new SimpleMarkerSymbol(lightGreen, 16, SimpleMarkerSymbol.STYLE.CIRCLE);
+        directionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, lightGreen, 16F);
 
         int green = ResourcesCompat.getColor(getResources(), R.color.colorGreen, getTheme());
-        lineSymbol = new SimpleLineSymbol(green, 8F, SimpleLineSymbol.STYLE.SOLID);
+        lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, green, 8F);
+
 
         // Add map
         NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
@@ -149,15 +153,19 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
                     // TODO: Insert referrer
                     String referrer = "REFERRER";
 
-                    UserCredentials credentials = new UserCredentials();
-                    credentials.setUserToken(token, referrer);
-                    credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
+                    UserCredential credentials = UserCredential.createFromToken(token, referrer);
+                    ArcGISTiledLayer layer = new ArcGISTiledLayer(url);
+                    layer.setCredential(credentials);
+                    Basemap basemap = new Basemap(layer);
+                    ArcGISMap arcGISMap = new ArcGISMap(basemap);
 
-                    ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
-                    mapView.addLayer(layer);
-                    // Add graphic layer
-                    mapView.addLayer(lineSymbolGraphicLayer);
-                    mapView.addLayer(pinGraphicLayer);
+                    // Set listener
+                    arcGISMap.addLoadStatusChangedListener(RouteActivity.this);
+
+                    mapView.setMap(arcGISMap);
+                    mapView.setAttributionTextVisible(false);
+                    mapView.getGraphicsOverlays().add(lineSymbolGraphicLayer);
+                    mapView.getGraphicsOverlays().add(pinGraphicLayer);
                 }
             }
 
@@ -170,33 +178,29 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         VehicleAdapter adapter = new VehicleAdapter(RouteActivity.this, arrVehicle);
         lvVehicle.setAdapter(adapter);
 
-        lvVehicle.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (position == 0) {
-                    positionGo = position;
-                    btnVehicle.setText(R.string.car);
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        lvVehicle.setOnItemClickListener((parent, view, position, id) -> {
+            if (position == 0) {
+                positionGo = position;
+                btnVehicle.setText(R.string.car);
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
-                } else if (position == 1) {
-                    positionGo = position;
-                    btnVehicle.setText(R.string.motorcycle);
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            } else if (position == 1) {
+                positionGo = position;
+                btnVehicle.setText(R.string.motorcycle);
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
-                } else if (position == 2) {
-                    positionGo = position;
-                    btnVehicle.setText(R.string.bike);
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            } else if (position == 2) {
+                positionGo = position;
+                btnVehicle.setText(R.string.bike);
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
-                } else if (position == 3) {
-                    positionGo = position;
-                    btnVehicle.setText(R.string.walk);
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                }
+            } else if (position == 3) {
+                positionGo = position;
+                btnVehicle.setText(R.string.walk);
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             }
         });
-        // Set listener
-        mapView.setOnStatusChangedListener(this);
+
         edtFromLocation.setOnClickListener(edtFromClick);
         edtToLocation.setOnClickListener(edtToClick);
         btnVehicle.setOnClickListener(btnVehicleClick);
@@ -205,12 +209,13 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         imbSearch.setOnClickListener(btnSearchClick);
         imvCurrentLocation.setOnClickListener(imvCurrentLocationClick);
 
-        mapView.setOnSingleTapListener(new OnSingleTapListener() {
+        mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(this, mapView) {
             @Override
-            public void onSingleTap(float v, float v1) {
+            public boolean onSingleTapUp(MotionEvent e) {
                 if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 }
+                return true;
             }
         });
     }
@@ -231,6 +236,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         public void onClick(View v) {
             Intent intent = new Intent(RouteActivity.this, PinMarkerActivity.class);
             startActivityForResult(intent, REQ_FROM_LOCATION);
+            lastExtent = mapView.getVisibleArea().getExtent();
         }
     };
 
@@ -239,6 +245,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         public void onClick(View v) {
             Intent intent = new Intent(RouteActivity.this, PinMarkerActivity.class);
             startActivityForResult(intent, REQ_TO_LOCATION);
+            lastExtent = mapView.getVisibleArea().getExtent();
         }
     };
 
@@ -252,7 +259,7 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
     private View.OnClickListener imvCurrentLocationClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            mapView.centerAt(mapPoint, true);
+            mapView.setViewpointCenterAsync(mapView.getLocationDisplay().getLocation().getPosition());
         }
     };
 
@@ -296,31 +303,27 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
                     ntRouteResult = result;
 
                     // Remove previous graphics.
-                    lineSymbolGraphicLayer.removeAll();
-                    pinGraphicLayer.removeAll();
+                    lineSymbolGraphicLayer.getGraphics().clear();
+                    pinGraphicLayer.getGraphics().clear();
 
-                    if (ntRouteResult != null) {
+                    if (ntRouteResult != null && ntRouteResult.getShape() != null) {
                         relativeLayout.setVisibility(View.VISIBLE);
                         txvMinutes.setText(String.format(Locale.ENGLISH, "%.2f นาที", ntRouteResult.getTotalTime()));
                         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
                         try {
-                            JsonParser parser = new JsonFactory().createJsonParser(ntRouteResult.getShape());
-                            MapGeometry mapGeometry = GeometryEngine.jsonToGeometry(parser);
-                            Geometry geometry = mapGeometry.getGeometry();
+                            Geometry geometry = Geometry.fromJson(ntRouteResult.getShape());
 
                             if (geometry != null && !geometry.isEmpty()) {
                                 geometry = GeometryEngine.project(geometry,
-                                        SpatialReference.create(4326),
-                                        SpatialReference.create(102100));
+                                        SpatialReferences.getWgs84());
                                 Graphic lineSymbolGraphic = new Graphic(geometry, lineSymbol);
-                                lineSymbolGraphicLayer.addGraphic(lineSymbolGraphic);
+                                lineSymbolGraphicLayer.getGraphics().add(lineSymbolGraphic);
                             }
 
                             Point fromPoint = new Point(toLon, toLat);
                             fromPoint = (Point) GeometryEngine.project(fromPoint,
-                                    SpatialReference.create(4326),
-                                    SpatialReference.create(102100));
+                                    SpatialReferences.getWgs84());
                             Graphic graphicPinFromLocation = new Graphic(fromPoint, fromMarkerSymbol);
 
                             Point point = null;
@@ -331,17 +334,17 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
                                         point = new Point(facilityGeometry.getX(), facilityGeometry.getY());
                                     }
                                     point = (Point) GeometryEngine.project(point,
-                                            SpatialReference.create(4326),
-                                            SpatialReference.create(102100));
+                                            SpatialReferences.getWgs84());
                                     Graphic pointGraphic = new Graphic(point, directionSymbol);
-                                    pinGraphicLayer.addGraphic(pointGraphic);
+                                    pinGraphicLayer.getGraphics().add(pointGraphic);
                                 }
                             }
                             Graphic graphicPinToLocation = new Graphic(point, destMarkerSymbol);
-                            pinGraphicLayer.addGraphic(graphicPinToLocation);
-                            pinGraphicLayer.addGraphic(graphicPinFromLocation);
+                            pinGraphicLayer.getGraphics().add(graphicPinToLocation);
+                            pinGraphicLayer.getGraphics().add(graphicPinFromLocation);
+
                             // Set extent
-//                            mapView.setExtent(geometry, 100, true);
+                            mapView.setViewpointGeometryAsync(geometry, 100);
                         } catch (Exception e) {
                             Toast.makeText(RouteActivity.this, "Error ", Toast.LENGTH_SHORT).show();
                         }
@@ -409,11 +412,11 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
         if (resultCode == RESULT_OK && data != null) {
             double pointX = data.getDoubleExtra("locationX", 0);
             double pointY = data.getDoubleExtra("locationY", 0);
-            Point pickPoint = new Point(pointX, pointY);
-            String decimalDegrees = CoordinateConversion.pointToDecimalDegrees(pickPoint,
-                    mapView.getSpatialReference(), 7);
-            final Point wgsPoint = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
-                    SpatialReference.create(SpatialReference.WKID_WGS84));
+            Point pickPoint = new Point(pointX, pointY, SpatialReferences.getWebMercator());
+
+            String decimalDegrees = CoordinateFormatter.toLatitudeLongitude(pickPoint, CoordinateFormatter.LatitudeLongitudeFormat.DECIMAL_DEGREES,
+                    7);
+            final Point wgsPoint = CoordinateFormatter.fromLatitudeLongitude(decimalDegrees, SpatialReferences.getWgs84());
 
             switch (requestCode) {
                 case REQ_TO_LOCATION:
@@ -445,48 +448,52 @@ public class RouteActivity extends AppCompatActivity implements OnStatusChangedL
     }
 
     @Override
-    public void onStatusChanged(Object source, STATUS status) {
-        if (source == mapView && status == OnStatusChangedListener.STATUS.INITIALIZED) {
-            ldm = mapView.getLocationDisplayManager();
-            ldm.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-            ldm.setLocationListener(new LocationListener() {
+    public void loadStatusChanged(LoadStatusChangedEvent loadStatusChangedEvent) {
+        String mapLoadStatus = loadStatusChangedEvent.getNewLoadStatus().name();
+        if ("LOADED".equals(mapLoadStatus)) {
+            Envelope env = new Envelope(1.0672849926751213E7, 593515.9027621585,
+                    1.1905414975501748E7, 2375599.5357473083, SpatialReference.create(102100));
+            Viewpoint viewpoint = new Viewpoint(env);
+            mapView.setViewpoint(viewpoint);
+            locationDisplay = mapView.getLocationDisplay();
+            locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.RECENTER);
+            locationDisplay.addLocationChangedListener(new LocationDisplay.LocationChangedListener() {
                 boolean locationChanged = false;
 
-                // Zooms to the current location when first GPS fix arrives.
                 @Override
-                public void onLocationChanged(Location loc) {
+                public void onLocationChanged(LocationDisplay.LocationChangedEvent locationChangedEvent) {
                     if (!locationChanged) {
                         locationChanged = true;
-
-                        double locY = loc.getLatitude();
-                        double locX = loc.getLongitude();
-                        Point wgsPoint = new Point(locX, locY);
-                        mapPoint = (Point) GeometryEngine
-                                .project(wgsPoint,
-                                        SpatialReference.create(4326),
-                                        mapView.getSpatialReference());
-
-                        Unit mapUnit = mapView.getSpatialReference().getUnit();
-                        double zoomWidth = Unit.convertUnits(5,
-                                Unit.create(LinearUnit.Code.MILE_US), mapUnit);
-                        Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
-                        mapView.setExtent(zoomExtent);
+                        LinearUnit unit = new LinearUnit(LinearUnitId.MILES);
+                        double zoomWidth = unit.toMeters(50);
+                        mapView.setViewpointCenterAsync(locationDisplay.getLocation().getPosition(), zoomWidth);
                     }
                 }
-
-                @Override
-                public void onProviderDisabled(String arg0) {
-                }
-
-                @Override
-                public void onProviderEnabled(String arg0) {
-                }
-
-                @Override
-                public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-                }
             });
-            ldm.start();
+            locationDisplay.startAsync();
         }
+
+    }
+
+    @Override
+    protected void onPause() {
+        mapView.pause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.resume();
+        if (lastExtent != null) {
+            Viewpoint viewpoint = new Viewpoint(lastExtent);
+            mapView.setViewpointAsync(viewpoint);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.dispose();
     }
 }

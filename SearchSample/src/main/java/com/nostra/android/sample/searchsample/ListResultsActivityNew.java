@@ -28,7 +28,7 @@ public class ListResultsActivityNew extends AppCompatActivity {
 
         searchResultList = getIntent().getParcelableArrayListExtra("results");
         for (SearchResult searchResult : searchResultList) {
-            points.add(searchResult.getPoint());
+            points.add(new NTPoint(searchResult.getLongitude(),searchResult.getLatitude()));
         }
         ResultsAdapter adapter = new ResultsAdapter(searchResultList, this);
         listView.setAdapter(adapter);

@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.ext.compileVersion
-    buildToolsVersion rootProject.ext.androidBuildVersion
 
     defaultConfig {
         applicationId "com.nostra.android.sample.addresssearchsample"
@@ -23,12 +22,16 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile "th.co.globetech:nostra-sdk:$rootProject.ext.nostraVersion"
-    compile "com.android.support:appcompat-v7:$rootProject.ext.androidSupportVersion"
-    compile "com.android.support:design:$rootProject.ext.androidSupportVersion"
-    compile "com.esri.arcgis.android:arcgis-android:$rootProject.ext.arcgisVersion"
+    implementation  fileTree(include: ['*.jar'], dir: 'libs')
+    implementation  "th.co.globetech:nostra-sdk:$rootProject.ext.nostraVersion"
+    implementation  "com.android.support:appcompat-v7:$rootProject.ext.androidSupportVersion"
+    implementation  "com.android.support:design:$rootProject.ext.androidSupportVersion"
+    implementation  "com.esri.arcgisruntime:arcgis-android:$rootProject.ext.arcgisVersion"
 }

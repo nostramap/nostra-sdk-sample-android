@@ -83,7 +83,8 @@ public class KeywordActivity extends AppCompatActivity {
                                             data.getAdminLevel2().getLocalName(),
                                             data.getAdminLevel3().getLocalName(),
                                             data.getAdminLevel3().getLocalName(),
-                                            data.getLocationPoint());
+                                            data.getLocationPoint().getY(),
+                                            data.getLocationPoint().getX());
                                     resultList.add(searchResult);
                                 }
                                 Intent intent = new Intent(KeywordActivity.this, ListResultsActivityNew.class);

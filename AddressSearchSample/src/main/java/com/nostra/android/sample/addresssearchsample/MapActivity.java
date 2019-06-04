@@ -1,9 +1,8 @@
 package com.nostra.android.sample.addresssearchsample;
 
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
-import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
@@ -16,27 +15,31 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.esri.android.map.Callout;
-import com.esri.android.map.GraphicsLayer;
-import com.esri.android.map.LocationDisplayManager;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.android.runtime.ArcGISRuntime;
-import com.esri.core.geometry.Envelope;
-import com.esri.core.geometry.GeometryEngine;
-import com.esri.core.geometry.LinearUnit;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.SpatialReference;
-import com.esri.core.geometry.Unit;
-import com.esri.core.io.UserCredentials;
-import com.esri.core.map.Graphic;
-import com.esri.core.symbol.PictureMarkerSymbol;
+import com.esri.arcgisruntime.concurrent.ListenableFuture;
+import com.esri.arcgisruntime.geometry.Envelope;
+import com.esri.arcgisruntime.geometry.GeometryEngine;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.loadable.LoadStatus;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedEvent;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedListener;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.Viewpoint;
+import com.esri.arcgisruntime.mapping.view.Callout;
+import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
+import com.esri.arcgisruntime.mapping.view.LocationDisplay;
+import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.security.UserCredential;
+import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
-import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.map.NTMapPermissionResult;
@@ -44,11 +47,11 @@ import th.co.nostrasdk.map.NTMapPermissionResultSet;
 import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
 
-public class MapActivity extends AppCompatActivity implements OnStatusChangedListener {
+public class MapActivity extends AppCompatActivity {
     private MapView mapView;
     private NTMapPermissionResult[] ntMapResults;
-    private Point pointMap;
-    private GraphicsLayer graphicsLayer = new GraphicsLayer();
+    private Point pointMap = null;
+    private GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
     private String houseNo;
     private String moo;
     private String soiL;
@@ -67,14 +70,10 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // TODO: Setting Client ID
-        ArcGISRuntime.setClientId("CLIENT_ID");
-
         mapView = (MapView) findViewById(R.id.mapView);
-        mapView.setOnStatusChangedListener(this);
-        initializeMap();
+        // mapView.setOnStatusChangedListener(this);
+        Boolean hasIntentData = (getIntent().getExtras() == null);
+        initializeMap(hasIntentData);
 
         // Get parameter from Class ListResultActivity
         try {
@@ -117,15 +116,17 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
             @Override
             public void onClick(View v) {
                 if (lonSearch == 0 && latSearch == 0) {
-                    mapView.centerAt(mapPoint, true);
+                    //  mapView.centerAt(mapPoint, true);
+                    mapView.setViewpointCenterAsync(mapPoint,50000);
                 } else {
-                    mapView.centerAt(pointMap, true);
+                    //  mapView.centerAt(pointMap, true);
+                    mapView.setViewpointCenterAsync(pointMap,50000);
                 }
             }
         });
     }
 
-    private void initializeMap() {
+    private void initializeMap(Boolean hasIntentData) {
         // Add map and current location
         NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
@@ -138,23 +139,36 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
                     String token = localInfo.getServiceToken();
                     // TODO: Insert referrer
                     String referrer = "REFERRER";
+                    UserCredential credentials = UserCredential.createFromToken(token,referrer);
+                    ArcGISTiledLayer layer = new ArcGISTiledLayer(url);
+                    layer.setCredential(credentials);
+                    Basemap basemap = new Basemap(layer);
+                    Envelope env = new Envelope(
+                            1.0672849926751213E7,
+                            593515.9027621585,
+                            1.1905414975501748E7,
+                            2375599.5357473083,
+                            SpatialReference.create(102100)
+                    );
 
-                    UserCredentials credentials = new UserCredentials();
-                    credentials.setUserToken(token, referrer);
-                    credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
+                    ArcGISMap map = new ArcGISMap(basemap);
+                    Viewpoint vp = new Viewpoint(env);
+                    map.setInitialViewpoint(vp);
+                    mapView.setMap(map);
+                    map.addLoadStatusChangedListener(loadStatusChangedListener);
 
-                    ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
-                    mapView.addLayer(layer);
 
                     NTPoint ntPoint = mapPermission.getDefaultLocation();
                     if (ntPoint != null) {
                         Point wgsPoint = new Point(ntPoint.getX(), ntPoint.getY());
                         // Convert WGS84 point (lat, lon) to WebMercator point (y, x)
                         pointMap = (Point) GeometryEngine.project(wgsPoint,
-                                SpatialReference.create(SpatialReference.WKID_WGS84),
-                                SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE));
-                        mapView.addLayer(graphicsLayer);
-                        mapView.centerAt(pointMap, true);
+                                SpatialReference.create(102100));
+                        mapView.getGraphicsOverlays().add(graphicsOverlay);
+                        mapView.setViewpointCenterAsync(pointMap,50000);
+                        if (isSearchResult) {
+                            onAddGraphic();
+                        }
                     }
                 }
             }
@@ -166,79 +180,78 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
         });
     }
 
-    @Override
-    public void onStatusChanged(Object source, STATUS status) {
-        if (source == mapView && status == OnStatusChangedListener.STATUS.INITIALIZED) {
-            LocationDisplayManager locationManager = mapView.getLocationDisplayManager();
-            locationManager.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-            locationManager.setLocationListener(new LocationListener() {
-                boolean locationChanged = false;
+    LoadStatusChangedListener loadStatusChangedListener = new LoadStatusChangedListener() {
+        @Override
+        public void loadStatusChanged(LoadStatusChangedEvent loadStatusChangedEvent) {
+            if (loadStatusChangedEvent.getNewLoadStatus().equals(LoadStatus.LOADED)) {
+                LocationDisplay locationDisplay = mapView.getLocationDisplay();
+                locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.OFF);
+                locationDisplay.startAsync();
+                locationDisplay.addLocationChangedListener(new LocationDisplay.LocationChangedListener() {
+                    boolean locationChanged = false;
 
-                // Zooms to the current location when first GPS fix arrives.
-                @Override
-                public void onLocationChanged(Location loc) {
-                    if (!locationChanged) {
-                        locationChanged = true;
-                        double locY = loc.getLatitude();
-                        double locX = loc.getLongitude();
-                        Point wgsPoint = new Point(locX, locY);
-                        //
-                        mapPoint = (Point) GeometryEngine.project(wgsPoint,
-                                SpatialReference.create(SpatialReference.WKID_WGS84),
-                                mapView.getSpatialReference());
+                    @Override
+                    public void onLocationChanged(LocationDisplay.LocationChangedEvent locationChangedEvent) {
+                        if (!locationChanged) {
+                            locationChanged = true;
+                            Point loc = locationChangedEvent.getLocation().getPosition();
+                            double locY = loc.getY();
+                            double locX = loc.getX();
+                            Point wgsPoint = new Point(locX, locY, SpatialReferences.getWgs84());
+                            //
+                            mapPoint = (Point) GeometryEngine.project(wgsPoint, mapView.getSpatialReference());
+                            if (!isSearchResult) {
+                                mapView.setViewpointCenterAsync(mapPoint, 50000);
+                            }
 
-                        Unit mapUnit = mapView.getSpatialReference().getUnit();
-                        double zoomWidth = Unit.convertUnits(5, Unit.create(LinearUnit.Code.MILE_US), mapUnit);
-                        Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
-                        mapView.setExtent(zoomExtent);
+                        }
                     }
-                }
+                });
 
-                @Override
-                public void onProviderDisabled(String arg0) {
-                }
+            }
+        }
+    };
 
-                @Override
-                public void onProviderEnabled(String arg0) {
-                }
+    private void onAddGraphic() {
+        graphicsOverlay.getGraphics().clear();
+        Point wgsPoint = new Point(lonSearch, latSearch, SpatialReferences.getWgs84());
+        // Convert WGS84 point (lat, lon) to WebMercator point (x, y)
+        pointMap = (Point) GeometryEngine.project(wgsPoint,
+                SpatialReference.create(102100));
+        Drawable drawable = ContextCompat.getDrawable(this, R.drawable.pin_markonmap);
 
-                @Override
-                public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-                }
-            });
-            locationManager.start();
-        } else if (status == STATUS.LAYER_LOADED && isSearchResult) {
-            graphicsLayer.removeAll();
-            Point wgsPoint = new Point(lonSearch, latSearch);
-            // Convert WGS84 point (lat, lon) to WebMercator point (x, y)
-            pointMap = (Point) GeometryEngine.project(wgsPoint,
-                    SpatialReference.create(SpatialReference.WKID_WGS84),
-                    SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE));
-            PictureMarkerSymbol symbol = new PictureMarkerSymbol(MapActivity.this,
-                    ContextCompat.getDrawable(this,R.drawable.pin_markonmap));
+        ListenableFuture<PictureMarkerSymbol> symbol =
+                PictureMarkerSymbol.createAsync((BitmapDrawable) drawable);
+        Map<String, Object> attr = new HashMap<>();
+        attr.put("houseNo", houseNo);
+        attr.put("moo", moo);
+        attr.put("soiL", soiL);
+        attr.put("roadL", roadL);
+        attr.put("adminLevel1L", adminLevel1L);
+        attr.put("adminLevel2L", adminLevel2L);
+        attr.put("adminLevel3L", adminLevel3L);
+        attr.put("postcode", postcode);
 
-            Map<String, Object> attr = new HashMap<>();
-            attr.put("houseNo", houseNo);
-            attr.put("moo", moo);
-            attr.put("soiL", soiL);
-            attr.put("roadL", roadL);
-            attr.put("adminLevel1L", adminLevel1L);
-            attr.put("adminLevel2L", adminLevel2L);
-            attr.put("adminLevel3L", adminLevel3L);
-            attr.put("postcode", postcode);
+        try {
 
-            Graphic graphic = new Graphic(pointMap, symbol, attr);
-            graphicsLayer.addGraphic(graphic);
-            mapView.centerAt(pointMap, true);
-            mapView.zoomToScale(pointMap, 10000);
+            Graphic graphic = new Graphic(pointMap, symbol.get());
+            graphicsOverlay.getGraphics().add(graphic);
 
             // Display callout.
             View calloutView = loadView(houseNo, moo, soiL, roadL,
                     adminLevel1L, adminLevel2L, adminLevel3L, postcode);
             Callout mapCallOut = mapView.getCallout();
-            mapCallOut.setOffsetDp(0, 25);
-            mapCallOut.animatedShow(pointMap, calloutView);
+            mapCallOut.setContent(calloutView);
+            mapCallOut.setLocation(pointMap);
+            mapCallOut.show();
+            mapView.setViewpointCenterAsync(mapCallOut.getLocation(),50000);
+
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+
     }
 
     private NTMapPermissionResult getThailandBasemap() {
@@ -297,4 +310,6 @@ public class MapActivity extends AppCompatActivity implements OnStatusChangedLis
         imvPin.setImageDrawable(pin);
         return view;
     }
+
 }
+

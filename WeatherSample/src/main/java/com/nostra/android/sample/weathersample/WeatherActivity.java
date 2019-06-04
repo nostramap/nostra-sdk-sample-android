@@ -1,33 +1,32 @@
 package com.nostra.android.sample.weathersample;
 
-import android.location.Location;
-import android.location.LocationListener;
+import android.annotation.SuppressLint;
+import android.os.Bundle;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.esri.android.map.Callout;
-import com.esri.android.map.GraphicsLayer;
-import com.esri.android.map.LocationDisplayManager;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.event.OnLongPressListener;
-import com.esri.android.map.event.OnSingleTapListener;
-import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.android.runtime.ArcGISRuntime;
-import com.esri.core.geometry.CoordinateConversion;
-import com.esri.core.geometry.Envelope;
-import com.esri.core.geometry.GeometryEngine;
-import com.esri.core.geometry.LinearUnit;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.SpatialReference;
-import com.esri.core.geometry.Unit;
-import com.esri.core.io.UserCredentials;
+import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
+import com.esri.arcgisruntime.geometry.Envelope;
+import com.esri.arcgisruntime.geometry.GeometryEngine;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.Viewpoint;
+import com.esri.arcgisruntime.mapping.view.Callout;
+import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
+import com.esri.arcgisruntime.mapping.view.LocationDisplay;
+import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.security.UserCredential;
 
 import java.util.Locale;
 
@@ -42,8 +41,7 @@ import th.co.nostrasdk.map.NTMapPermissionResultSet;
 import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
 
-public class WeatherActivity extends AppCompatActivity
-        implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
+public class WeatherActivity extends AppCompatActivity {
 
     private MapView mapView;
     private TextView txvTime;
@@ -56,7 +54,7 @@ public class WeatherActivity extends AppCompatActivity
 
     private NTMapPermissionResult[] ntMapResults;
     private Point point;
-    private GraphicsLayer graphicsLayer = new GraphicsLayer();
+    private GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
     private String locationName;
     private String urlIcon;
     private double temperature;
@@ -66,6 +64,7 @@ public class WeatherActivity extends AppCompatActivity
     private String time;
     private BottomSheetBehavior bottomSheetBehavior;
     private Callout mapCallout;
+    private boolean locationChanged = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,9 +72,10 @@ public class WeatherActivity extends AppCompatActivity
         setContentView(R.layout.activity_weather);
 
         // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
-        // TODO: Setting Client ID
-        ArcGISRuntime.setClientId("CLIENT_ID");
+        NTSDKEnvironment.setEnvironment("API_KEY", this);
+
+        // TODO: Setting Licence ID
+        ArcGISRuntimeEnvironment.setLicense("Licence_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
         txvTime = (TextView) findViewById(R.id.txvTime);
@@ -101,22 +101,30 @@ public class WeatherActivity extends AppCompatActivity
                     // TODO: Insert referrer
                     String referrer = "REFERRER";
 
-                    UserCredentials credentials = new UserCredentials();
-                    credentials.setUserToken(token, referrer);
-                    credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
+                    UserCredential credentials = UserCredential.createFromToken(token,referrer);
 
-                    ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
+                    ArcGISTiledLayer layer = new ArcGISTiledLayer(url);
+                    layer.setCredential(credentials);
                     double lat = 0;
                     double lon = 0;
-                    point = new Point(lat, lon);
-                    String s = CoordinateConversion.pointToDecimalDegrees(point, SpatialReference.create
-                            (SpatialReference.WKID_WGS84), 7);
-                    point = CoordinateConversion.decimalDegreesToPoint(s, SpatialReference.create
-                            (SpatialReference.WKID_WGS84_WEB_MERCATOR));
-                    mapView.addLayer(layer);
+                    point = new Point(lat, lon, SpatialReferences.getWgs84());
+
+                    Basemap basemap = new Basemap(layer);
+                    Envelope env = new Envelope(
+                            1.0672849926751213E7,
+                            593515.9027621585,
+                            1.1905414975501748E7,
+                            2375599.5357473083,
+                            SpatialReference.create(102100)
+                    );
+
+                    ArcGISMap mMap = new ArcGISMap(basemap);
+                    Viewpoint vp = new Viewpoint(env);
+                    mMap.setInitialViewpoint(vp);
+                    mapView.setMap(mMap);
+                    mMap.addDoneLoadingListener(doneLoadingListener);
                     mapCallout = mapView.getCallout();
-                    mapView.centerAt(point, true);
-                    mapView.addLayer(graphicsLayer);
+                    mapView.getGraphicsOverlays().add(graphicsOverlay);
                 }
             }
 
@@ -125,10 +133,88 @@ public class WeatherActivity extends AppCompatActivity
                 Toast.makeText(WeatherActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
-        // Current Location
-        mapView.setOnStatusChangedListener(this);
-        mapView.setOnLongPressListener(this);
-        mapView.setOnSingleTapListener(this);
+    }
+
+    private Runnable doneLoadingListener = new Runnable() {
+        @SuppressLint("ClickableViewAccessibility")
+        @Override
+        public void run() {
+
+            LocationDisplay locationManager = mapView.getLocationDisplay();
+            locationManager.setAutoPanMode(LocationDisplay.AutoPanMode.OFF);
+            locationManager.addLocationChangedListener(locationChangedEvent -> {
+                // Zooms to the current txvLocation when first GPS fix arrives.
+
+                if (!locationChanged) {
+                    locationChanged = true;
+                    Point loc = locationChangedEvent.getLocation().getPosition();
+                    double locY = loc.getY();
+                    double locX = loc.getX();
+                    Point wgsPoint = new Point(locX, locY, SpatialReference.create(4326));
+                    mapView.setViewpointCenterAsync(wgsPoint, 50000);
+                }
+
+            });
+
+            mapView.setOnTouchListener(
+                    new DefaultMapViewOnTouchListener(WeatherActivity.this, mapView) {
+
+                        @Override
+                        public boolean onSingleTapConfirmed(MotionEvent e) {
+                            if (mapCallout.isShowing() && bottomSheetBehavior.isHideable()) {
+                                graphicsOverlay.getGraphics().clear();
+                                mapCallout.dismiss();
+                                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                            }
+                            return true;
+                        }
+
+                        @Override
+                        public void onLongPress(MotionEvent e) {
+                            point = screenToLocation(e.getX(), e.getY());
+
+                            NTWeatherParameter parameter = new NTWeatherParameter(point.getY(), point.getX());
+                            NTWeatherService.executeAsync(parameter, new ServiceRequestListener<NTWeatherResult>() {
+                                @Override
+                                public void onResponse(NTWeatherResult result) {
+                                    locationName = result.getLocationName();
+                                    NTWeather[] weathers = result.getWeathers();
+                                    if (weathers.length > 0) {
+                                        urlIcon = weathers[0].getIcon();
+                                        temperature = weathers[0].getTemperature().getAverage();
+                                        temperatureMin = weathers[0].getTemperature().getMin();
+                                        temperatureMax = weathers[0].getTemperature().getMax();
+                                        time = weathers[0].getDatetime();
+                                        description = weathers[0].getWeatherDescription();
+
+                                        // Sets custom content view to Callout
+                                        mapCallout = mapView.getCallout();
+                                        if (mapCallout != null && mapCallout.isShowing()) {
+                                            mapCallout.dismiss();
+                                        }
+                                        mapCallout.setContent(createCalloutView());
+                                        mapCallout.setLocation(point);
+                                        mapCallout.show();
+                                    }
+                                }
+
+                                @Override
+                                public void onError(String errorMessage, int statusCode) {
+                                    Toast.makeText(WeatherActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    });
+        }
+    };
+
+    private Point screenToLocation(Float x, Float y) {
+        try {
+            Point mapPoint = mapView.screenToLocation(new android.graphics.Point(Math.round(x), Math.round(y)));
+            return (Point) GeometryEngine.project(mapPoint, SpatialReferences.getWgs84());
+        } catch (NullPointerException e) {
+            return new Point(0, 0);
+        }
     }
 
     private NTMapPermissionResult getThailandBasemap() {
@@ -142,109 +228,11 @@ public class WeatherActivity extends AppCompatActivity
     }
 
     @Override
-    public void onStatusChanged(Object source, STATUS status) {
-        if (source == mapView && status == OnStatusChangedListener.STATUS.INITIALIZED) {
-            LocationDisplayManager locationManager = mapView.getLocationDisplayManager();
-            locationManager.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-            locationManager.setLocationListener(new LocationListener() {
-                boolean locationChanged = false;
-
-                // Zooms to the current txvLocation when first GPS fix arrives.
-                @Override
-                public void onLocationChanged(Location loc) {
-                    if (!locationChanged) {
-                        locationChanged = true;
-                        double locY = loc.getLatitude();
-                        double locX = loc.getLongitude();
-                        Point wgsPoint = new Point(locX, locY);
-                        Point mapPoint = (Point) GeometryEngine.project(wgsPoint,
-                                SpatialReference.create(4326),
-                                mapView.getSpatialReference());
-
-                        Unit mapUnit = mapView.getSpatialReference().getUnit();
-                        double zoomWidth = Unit.convertUnits(5, Unit.create(LinearUnit.Code.MILE_US), mapUnit);
-                        Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
-                        mapView.setExtent(zoomExtent);
-                    }
-                }
-
-                @Override
-                public void onProviderDisabled(String arg0) {
-                }
-
-                @Override
-                public void onProviderEnabled(String arg0) {
-                }
-
-                @Override
-                public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-
-                }
-            });  // Action Listener
-            locationManager.start();
-        }
-    }
-
-    @Override
     public void onBackPressed() {
         if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         } else {
             super.onBackPressed();
-        }
-    }
-
-    @Override
-    public boolean onLongPress(float x, float y) {
-        point = mapView.toMapPoint(x, y);
-        // Convert WebMercator coordinate to WGS coordinate
-        Point wgsPoint = (Point) GeometryEngine.project(point,
-                SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE),
-                SpatialReference.create(SpatialReference.WKID_WGS84));
-
-        NTWeatherParameter parameter = new NTWeatherParameter(wgsPoint.getY(), wgsPoint.getX());
-        NTWeatherService.executeAsync(parameter, new ServiceRequestListener<NTWeatherResult>() {
-            @Override
-            public void onResponse(NTWeatherResult result) {
-                locationName = result.getLocationName();
-                NTWeather[] weathers = result.getWeathers();
-                if (weathers.length > 0) {
-                    urlIcon = weathers[0].getIcon();
-                    temperature = weathers[0].getTemperature().getAverage();
-                    temperatureMin = weathers[0].getTemperature().getMin();
-                    temperatureMax = weathers[0].getTemperature().getMax();
-                    time = weathers[0].getDatetime();
-                    description = weathers[0].getWeatherDescription();
-
-                    // Sets custom content view to Callout
-                    mapCallout = mapView.getCallout();
-                    if (mapCallout != null && mapCallout.isShowing()) {
-                        mapCallout.hide();
-                    }
-                    mapCallout.setContent(createCalloutView());
-                    mapCallout.setCoordinates(point);
-                    mapCallout.show(point);
-                }
-            }
-
-            @Override
-            public void onError(String errorMessage, int statusCode) {
-                Toast.makeText(WeatherActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
-            }
-        });
-        return true;
-    }
-
-    @Override
-    public void onSingleTap(float v, float v1) {
-        if (mapView.isLoaded()) {
-            if (mapCallout.isShowing() && bottomSheetBehavior.isHideable()) {
-                graphicsLayer.removeAll();
-                mapCallout.hide();
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-            }
-        } else {
-            Toast.makeText(WeatherActivity.this, "Map Loading", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -261,7 +249,7 @@ public class WeatherActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 // Pan to point
-                mapView.centerAt(point, true);
+                mapView.setViewpointCenterAsync(point, 50000);
 
                 // Display detail as bottom sheet
                 txvTime.setText(time);

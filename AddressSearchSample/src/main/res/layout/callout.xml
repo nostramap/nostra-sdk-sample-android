@@ -21,5 +21,6 @@
         android:layout_marginLeft="20dp"
         android:layout_toRightOf="@id/pinMarkOnMap"
         android:maxWidth="240dp"
+        android:text="test attribute"
         android:textColor="#000000" />
 </RelativeLayout>

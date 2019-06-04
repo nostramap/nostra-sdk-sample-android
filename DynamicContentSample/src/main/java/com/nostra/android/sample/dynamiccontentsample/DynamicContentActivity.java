@@ -3,8 +3,8 @@ package com.nostra.android.sample.dynamiccontentsample;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
-import android.location.Location;
-import android.location.LocationListener;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -23,18 +23,22 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.esri.android.map.GraphicsLayer;
-import com.esri.android.map.LocationDisplayManager;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.android.runtime.ArcGISRuntime;
-import com.esri.core.geometry.GeometryEngine;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.SpatialReference;
-import com.esri.core.io.UserCredentials;
-import com.esri.core.map.Graphic;
-import com.esri.core.symbol.PictureMarkerSymbol;
+import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
+import com.esri.arcgisruntime.concurrent.ListenableFuture;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
+import com.esri.arcgisruntime.mapping.view.LocationDisplay;
+import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.security.UserCredential;
+import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
+
+import java.util.concurrent.ExecutionException;
 
 import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
@@ -44,6 +48,7 @@ import th.co.nostrasdk.map.NTMapPermissionResult;
 import th.co.nostrasdk.map.NTMapPermissionResultSet;
 import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
+import th.co.nostrasdk.network.NTLocation;
 import th.co.nostrasdk.query.dynamic.NTDynamicContentListResult;
 import th.co.nostrasdk.query.dynamic.NTDynamicContentListResultSet;
 import th.co.nostrasdk.query.dynamic.NTDynamicContentListService;
@@ -52,7 +57,7 @@ import th.co.nostrasdk.share.link.NTShortLinkParameter;
 import th.co.nostrasdk.share.link.NTShortLinkResult;
 import th.co.nostrasdk.share.link.NTShortLinkService;
 
-public class DynamicContentActivity extends AppCompatActivity implements OnStatusChangedListener {
+public class DynamicContentActivity extends AppCompatActivity {
     private MapView mapView;
     private DrawerLayout drawerLayout;
     private ImageView imvLayer, imvBack;
@@ -64,9 +69,10 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
     private View curtainView;
     private RelativeLayout rllShare;
     private TextView txvShareUrl, txvCopy, txvCancel;
+    private LocationDisplay locationDisplay;
 
-    private GraphicsLayer mGraphicsLayer;
-    private SpatialReference outSR = SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE);
+    private GraphicsOverlay graphicsOverlay;
+    private SpatialReference webMercator = SpatialReference.create(102100);
     private NTMapPermissionResult[] ntMapResults;
     private NTDynamicContentListResult[] dynamicLayers;
     private double lat, lon;
@@ -77,11 +83,6 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dynamic_map_content);
-
-        // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // TODO: Setting Client ID
-        ArcGISRuntime.setClientId("CLIENT_ID");
 
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         drawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
@@ -155,9 +156,9 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
                 // pan to current location
                 if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                         manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                    LocationDisplayManager ldm = mapView.getLocationDisplayManager();
-                    ldm.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-                    ldm.start();
+                    LocationDisplay ldm = mapView.getLocationDisplay();
+                    ldm.setAutoPanMode(LocationDisplay.AutoPanMode.OFF);
+                    ldm.startAsync();
                 }
             }
         });
@@ -177,16 +178,19 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
                     // TODO: Insert referrer
                     String referrer = "REFERRER";
 
-                    UserCredentials credentials = new UserCredentials();
-                    credentials.setUserToken(token, referrer);
-                    credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
+                    UserCredential credentials =  UserCredential.createFromToken(token,referrer);
 
-                    ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
-                    mapView.addLayer(layer);
+                    ArcGISTiledLayer tiledLayer = new ArcGISTiledLayer(url);
+                    tiledLayer.setCredential(credentials);
+                    Basemap baseMap = new Basemap(tiledLayer);
+                    ArcGISMap mMap = new ArcGISMap(baseMap);
+                    mapView.setMap(mMap);
+                    mMap.addDoneLoadingListener(doneLoadingListener);
                 }
                 // Add graphic layer for add pin
-                mGraphicsLayer = new GraphicsLayer();
-                mapView.addLayer(mGraphicsLayer);
+                graphicsOverlay = new GraphicsOverlay();
+                mapView.getGraphicsOverlays().add(graphicsOverlay);
+
             }
 
             @Override
@@ -194,8 +198,39 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
                 Toast.makeText(DynamicContentActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
-        mapView.setOnStatusChangedListener(this);
+
     }
+
+    private Runnable doneLoadingListener = new Runnable() {
+        @Override
+        public void run() {
+            // Zoom to current location
+            if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                    manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                locationDisplay = mapView.getLocationDisplay();
+                locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.OFF);
+                // For the first run only
+                locationDisplay.addLocationChangedListener(new LocationDisplay.LocationChangedListener() {
+                    boolean firstRun = true;
+
+                    @Override
+                    public void onLocationChanged(LocationDisplay.LocationChangedEvent locationChangedEvent) {
+
+                        Point location = locationChangedEvent.getLocation().getPosition();
+                        lat = location.getY();
+                        lon = location.getX();
+                        if (firstRun) {
+                            Point p = new Point(lon, lat, SpatialReferences.getWgs84());
+                            mapView.setViewpointCenterAsync(p, 1);
+                            firstRun = false;
+                        }
+                    }
+                });
+
+                locationDisplay.startAsync();
+            }
+        }
+    };
 
     private NTMapPermissionResult getThailandBasemap() {
         for (NTMapPermissionResult result : ntMapResults) {
@@ -255,12 +290,20 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
         imvBack.setVisibility(View.VISIBLE);
         imvLayer.setVisibility(View.GONE);
         txvHeader.setText(R.string.display_on_map);
-        Point p = GeometryEngine.project(poiItem.getLongitude(), poiItem.getLatitude(), outSR);
-        PictureMarkerSymbol pin = new PictureMarkerSymbol(ContextCompat
-                .getDrawable(this, R.drawable.pin_markonmap));
 
-        mGraphicsLayer.addGraphic(new Graphic(p, pin));
-        mapView.zoomTo(p, 11);
+        Point p = new Point(poiItem.getLongitude(), poiItem.getLatitude(), SpatialReferences.getWgs84());
+        Drawable drawable = ContextCompat
+                .getDrawable(this, R.drawable.pin_markonmap);
+        ListenableFuture<PictureMarkerSymbol> pin =  PictureMarkerSymbol.createAsync((BitmapDrawable)drawable);
+        try {
+            graphicsOverlay.getGraphics().add(new Graphic(p, pin.get()));
+            mapView.setViewpointCenterAsync(p, 50000);
+        } catch (ExecutionException e1) {
+            e1.printStackTrace();
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+
     }
 
     void createShareUrl(PoiItem poiItem) {
@@ -269,12 +312,8 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
 
         curtainView.setVisibility(View.VISIBLE);
         rllShare.setVisibility(View.VISIBLE);
-        NTShortLinkParameter param = new NTShortLinkParameter(poiItem.getLocalName(), new String[]{"ATM", "HOTEL"});
-        param.setLocationDescription(poiItem.getLocalAddress());
+        NTShortLinkParameter param = new NTShortLinkParameter(new NTLocation(poiItem.getLocalName(),poiItem.getLatitude(),poiItem.getLongitude()));
         param.setLanguage(NTLanguage.LOCAL);
-        param.setLevel(11);
-        param.setMapType(NTMapType.STREET_MAP);
-
         // Call share service and show the url
         NTShortLinkService.executeAsync(param, new ServiceRequestListener<NTShortLinkResult>() {
             @Override
@@ -317,12 +356,11 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
                 imvLayer.setVisibility(View.VISIBLE);
                 imvBack.setVisibility(View.GONE);
                 frlContainer.setVisibility(View.VISIBLE);
-                mGraphicsLayer.removeAll();
+                graphicsOverlay.getGraphics().clear();
                 if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                         manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                    LocationDisplayManager ldm = mapView.getLocationDisplayManager();
-                    ldm.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-                    ldm.start();
+                    locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.OFF);
+                    locationDisplay.startAsync();
                 }
                 return;
             }
@@ -331,49 +369,8 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
     }
 
     @Override
-    public void onStatusChanged(Object source, STATUS status) {
-        if (status == STATUS.LAYER_LOADED) {
-            // Zoom to current location
-            if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-                    manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                LocationDisplayManager ldm = mapView.getLocationDisplayManager();
-                ldm.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-                // For the first run only
-                ldm.setLocationListener(new LocationListener() {
-                    boolean firstRun = true;
-
-                    @Override
-                    public void onLocationChanged(Location location) {
-                        lat = location.getLatitude();
-                        lon = location.getLongitude();
-                        if (firstRun) {
-                            Point p = GeometryEngine.project(lon, lat, outSR);
-                            mapView.zoomToResolution(p, 1);
-                            firstRun = false;
-                        }
-                    }
-
-                    @Override
-                    public void onStatusChanged(String provider, int status, Bundle extras) {
-                    }
-
-                    @Override
-                    public void onProviderEnabled(String provider) {
-                    }
-
-                    @Override
-                    public void onProviderDisabled(String provider) {
-                    }
-                });
-                ldm.start();
-            }
-        }
-    }
-
-    @Override
     protected void onPause() {
-        LocationDisplayManager ldm = mapView.getLocationDisplayManager();
-        ldm.pause();
+        mapView.getLocationDisplay().stop();
         mapView.pause();
         super.onPause();
     }
@@ -381,15 +378,16 @@ public class DynamicContentActivity extends AppCompatActivity implements OnStatu
     @Override
     protected void onResume() {
         super.onResume();
-        mapView.unpause();
-        LocationDisplayManager ldm = mapView.getLocationDisplayManager();
-        ldm.resume();
+        mapView.resume();
+        LocationDisplay locationDisplay = mapView.getLocationDisplay();
+        if (!locationDisplay.isStarted()) {
+            mapView.getLocationDisplay().startAsync();
+        }
     }
 
     @Override
     protected void onDestroy() {
-        LocationDisplayManager ldm = mapView.getLocationDisplayManager();
-        ldm.stop();
+        mapView.getLocationDisplay().stop();
         super.onDestroy();
     }
 }

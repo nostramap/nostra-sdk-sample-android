@@ -26,12 +26,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DirectionActivity">
-            android:screenOrientation="portrait"
-        </activity>
-        <activity android:name=".PinMarkerActivity">
-            android:screenOrientation="portrait"
-        </activity>
+        <activity android:name=".DirectionActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".PinMarkerActivity"
+            android:screenOrientation="portrait"/>
         <activity android:name=".SearchAlongRouteActivity" />
     </application>
 

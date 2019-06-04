@@ -1,51 +1,48 @@
 package com.nostra.android.sample.routesample;
 
 import android.content.Intent;
-import android.location.Location;
-import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.esri.android.map.GraphicsLayer;
-import com.esri.android.map.LocationDisplayManager;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.android.runtime.ArcGISRuntime;
-import com.esri.core.geometry.Envelope;
-import com.esri.core.geometry.GeometryEngine;
-import com.esri.core.geometry.LinearUnit;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.SpatialReference;
-import com.esri.core.geometry.Unit;
-import com.esri.core.io.UserCredentials;
+import com.esri.arcgisruntime.geometry.LinearUnit;
+import com.esri.arcgisruntime.geometry.LinearUnitId;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedEvent;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedListener;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
+import com.esri.arcgisruntime.mapping.view.LocationDisplay;
+import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.mapping.view.WrapAroundMode;
+import com.esri.arcgisruntime.security.UserCredential;
 
-import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.map.NTMapPermissionResult;
 import th.co.nostrasdk.map.NTMapPermissionResultSet;
 import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
 
-public class PinMarkerActivity extends AppCompatActivity implements OnStatusChangedListener {
+public class PinMarkerActivity extends AppCompatActivity implements LoadStatusChangedListener {
     private MapView mapView;
     private NTMapPermissionResult[] ntMapResults;
-    private LocationDisplayManager ldm;
-    private GraphicsLayer pinGraphicLayer = new GraphicsLayer();
+    private LocationDisplay locationDisplay;
+    private boolean isMapLoad = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pinmarker);
 
-        mapView = (MapView) findViewById(R.id.mapView);
-        mapView.enableWrapAround(true);
+        mapView = findViewById(R.id.mapView);
+        mapView.setWrapAroundMode(WrapAroundMode.ENABLE_WHEN_SUPPORTED);
 
-        ldm = mapView.getLocationDisplayManager();
-        ldm.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
+        locationDisplay = mapView.getLocationDisplay();
+        locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.RECENTER);
 
         //Add map and current location
         NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
@@ -60,14 +57,16 @@ public class PinMarkerActivity extends AppCompatActivity implements OnStatusChan
                     // TODO: Insert referrer
                     String referrer = "REFERRER";
 
-                    UserCredentials credentials = new UserCredentials();
-                    credentials.setUserToken(token, referrer);
-                    credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
+                    UserCredential credential = UserCredential.createFromToken(token,referrer);
 
-                    ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
-                    mapView.addLayer(layer);
-                    mapView.addLayer(pinGraphicLayer);
-                    mapView.setOnStatusChangedListener(PinMarkerActivity.this);
+                    ArcGISTiledLayer layer = new ArcGISTiledLayer(url);
+                    layer.setCredential(credential);
+                    Basemap basemap = new Basemap(layer);
+                    ArcGISMap arcGISMap = new ArcGISMap(basemap);
+                    arcGISMap.addLoadStatusChangedListener(PinMarkerActivity.this);
+
+                    mapView.setMap(arcGISMap);
+                    mapView.setAttributionTextVisible(false);
                 }
             }
 
@@ -77,80 +76,30 @@ public class PinMarkerActivity extends AppCompatActivity implements OnStatusChan
             }
         });
         // Send parameter to RouteActivity
-        Button btnOk = (Button) findViewById(R.id.btnOk);
+        Button btnOk = findViewById(R.id.btnOk);
         btnOk.setOnClickListener(btnOkClickListener);
 
-        final Button btnCancel = (Button) findViewById(R.id.btnCancel);
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                pinGraphicLayer.removeAll();
-            }
-        });
+        final Button btnCancel = findViewById(R.id.btnCancel);
+        btnCancel.setOnClickListener(v -> finish());
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        ldm.stop();
+        locationDisplay.stop();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        ldm.resume();
-    }
-
-    @Override
-    public void onStatusChanged(Object source, STATUS status) {
-        if (source == mapView && status == STATUS.INITIALIZED) {
-            ldm.setLocationListener(new LocationListener() {
-                boolean locationChanged = false;
-
-                // Zooms to the current location when first GPS fix arrives.
-                @Override
-                public void onLocationChanged(Location loc) {
-                    if (!locationChanged) {
-                        locationChanged = true;
-
-                        double locY = loc.getLatitude();
-                        double locX = loc.getLongitude();
-                        Point wgsPoint = new Point(locX, locY);
-                        Point mapPoint = (Point) GeometryEngine
-                                .project(wgsPoint,
-                                        SpatialReference.create(4326),
-                                        mapView.getSpatialReference());
-
-                        Unit mapUnit = mapView.getSpatialReference().getUnit();
-                        double zoomWidth = Unit.convertUnits(5,
-                                Unit.create(LinearUnit.Code.MILE_US), mapUnit);
-                        Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
-                        mapView.setExtent(zoomExtent);
-                    }
-                }
-
-                @Override
-                public void onProviderDisabled(String arg0) {
-                }
-
-                @Override
-                public void onProviderEnabled(String arg0) {
-                }
-
-                @Override
-                public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-
-                }
-            });
-            ldm.start();
-        }
+        locationDisplay.startAsync();
     }
 
     private View.OnClickListener btnOkClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if (mapView.isLoaded()) {
-                Point pointCenter = mapView.getCenter();
+            if (isMapLoad) {
+                Point pointCenter = mapView.getVisibleArea().getExtent().getCenter();
 
                 Intent intent = new Intent();
                 intent.putExtra("locationX", pointCenter.getX());
@@ -171,5 +120,27 @@ public class PinMarkerActivity extends AppCompatActivity implements OnStatusChan
             }
         }
         return null;
+    }
+
+    @Override
+    public void loadStatusChanged(LoadStatusChangedEvent loadStatusChangedEvent) {
+        String mapLoadStatus = loadStatusChangedEvent.getNewLoadStatus().name();
+        switch(mapLoadStatus){
+            case "LOADED":
+                locationDisplay.addLocationChangedListener(new LocationDisplay.LocationChangedListener() {
+                    boolean locationChanged = false;
+                    @Override
+                    public void onLocationChanged(LocationDisplay.LocationChangedEvent locationChangedEvent) {
+                        isMapLoad = true;
+                        if (!locationChanged) {
+                            locationChanged = true;
+                            LinearUnit unit = new LinearUnit(LinearUnitId.MILES);
+                            double zoomWidth = unit.toMeters(50);
+                            mapView.setViewpointCenterAsync(locationDisplay.getLocation().getPosition(), zoomWidth);
+                        }
+                    }
+                });
+            locationDisplay.startAsync();
+        }
     }
 }

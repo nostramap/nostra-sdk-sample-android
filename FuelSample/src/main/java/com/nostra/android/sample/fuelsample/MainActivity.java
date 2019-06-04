@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentTabHost;
 import android.support.v7.app.AppCompatActivity;
 
-import com.esri.android.runtime.ArcGISRuntime;
+import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 
 import th.co.nostrasdk.NTSDKEnvironment;
 
@@ -15,11 +15,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fuel);
-
-        // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // TODO: Setting Client ID
-        ArcGISRuntime.setClientId("CLIENT_ID");
 
         FragmentTabHost tabHost = (FragmentTabHost) findViewById(R.id.tabHost_Search);
         tabHost.setup(this, getSupportFragmentManager(), android.R.id.tabcontent);

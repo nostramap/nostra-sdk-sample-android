@@ -13,28 +13,31 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.esri.android.map.Layer;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISDynamicMapServiceLayer;
-import com.esri.android.map.ags.ArcGISFeatureLayer;
-import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.ogc.WMSLayer;
-import com.esri.android.runtime.ArcGISRuntime;
-import com.esri.core.geometry.Point;
-import com.esri.core.io.UserCredentials;
+import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
+import com.esri.arcgisruntime.data.ServiceFeatureTable;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
+import com.esri.arcgisruntime.layers.ArcGISMapImageLayer;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.layers.FeatureLayer;
+import com.esri.arcgisruntime.layers.Layer;
+import com.esri.arcgisruntime.layers.WmsLayer;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.security.UserCredential;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
+import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.map.NTMapLayerType;
 import th.co.nostrasdk.map.NTMapPermissionResult;
 import th.co.nostrasdk.map.NTMapPermissionResultSet;
 import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
 import th.co.nostrasdk.map.NTMapServiceType;
-import th.co.nostrasdk.common.NTPoint;
 
 public class MapActivity extends AppCompatActivity {
     private ListView lvBaseMap;
@@ -55,15 +58,15 @@ public class MapActivity extends AppCompatActivity {
         setContentView(R.layout.activity_map);
 
         // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
-        // TODO: Setting Client ID
-        ArcGISRuntime.setClientId("CLIENT_ID");
+        NTSDKEnvironment.setEnvironment("API_KEY", this);
+        // TODO: Setting Licence ID
+        ArcGISRuntimeEnvironment.setLicense("Licence_ID");
 
         mapView = (MapView) findViewById(R.id.mapView);
         lvBaseMap = (ListView) findViewById(R.id.lvBaseMap);
         lvLayerMap = (ListView) findViewById(R.id.lvLayerMap);
         serviceOrderList = new ArrayList<>();
-
+        mapView.setMap(new ArcGISMap());
         // Add map
         NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
@@ -97,7 +100,7 @@ public class MapActivity extends AppCompatActivity {
         imvCurrentLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mapView.centerAt(mapPoint, true);
+                mapView.setViewpointCenterAsync(mapPoint, 5000);
             }
         });
     }
@@ -105,7 +108,7 @@ public class MapActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mapView.unpause();
+        mapView.resume();
     }
 
     @Override
@@ -189,11 +192,9 @@ public class MapActivity extends AppCompatActivity {
         if (!isImageryMap && (TextUtils.isEmpty(url) || TextUtils.isEmpty(token)))
             return;
 
-        UserCredentials credentials = null;
+        UserCredential credentials = null;
         if (!isImageryMap) {
-            credentials = new UserCredentials();
-            credentials.setUserToken(token, referrer);
-            credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
+            credentials = UserCredential.createFromToken(token, referrer);
         }
         int mapSortIndex = map.getSortIndex();
         int index = findSuiteIndexForLayer(mapSortIndex);
@@ -201,22 +202,28 @@ public class MapActivity extends AppCompatActivity {
         // Initiate layer by type.
         Layer layer = null;
         if (map.getMapServiceType() == NTMapServiceType.TILED_MAP_SERVICE) {
-            layer = new ArcGISTiledMapServiceLayer(url, credentials);
+            layer = new ArcGISTiledLayer(url);
+            ((ArcGISTiledLayer) layer).setCredential(credentials);
         } else if (map.getMapServiceType() == NTMapServiceType.DYNAMIC_MAP_SERVICE) {
-            layer = new ArcGISDynamicMapServiceLayer(url, new int[]{}, credentials);
+            layer = new ArcGISMapImageLayer(url);
+            ((ArcGISMapImageLayer) layer).setCredential(credentials);
         } else if (map.getMapServiceType() == NTMapServiceType.FEATURE_SERVICE) {
-            ArcGISFeatureLayer.Options options = new ArcGISFeatureLayer.Options();
-            options.mode = ArcGISFeatureLayer.MODE.ONDEMAND;
-            layer = new ArcGISFeatureLayer(url, options, credentials);
+            ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(url);
+            serviceFeatureTable.setCredential(credentials);
+            layer = new FeatureLayer(serviceFeatureTable);
+            ((FeatureLayer) layer).setRenderingMode((FeatureLayer.RenderingMode.STATIC));
+
         } else if (map.getMapServiceType() == NTMapServiceType.WEB_MAP_SERVICE) {
-            layer = new WMSLayer(url, null, true, null, credentials, true);
+            List<String> wmsLayerNames = new ArrayList<>();
+            wmsLayerNames.add("1");
+            layer = new WmsLayer(url, wmsLayerNames);
         }
 
         // Add new layer and hide all layer by default.
         if (layer != null) {
             layer.setName(map.getName());
             layer.setVisible(false);
-            mapView.addLayer(layer, index);
+            mapView.getMap().getOperationalLayers().add(layer);
             serviceOrderList.add(index, mapSortIndex);
         }
     }
@@ -240,7 +247,7 @@ public class MapActivity extends AppCompatActivity {
             }
         }
 
-        for (Layer layer : mapView.getLayers()) {
+        for (Layer layer : mapView.getMap().getOperationalLayers()) {
             if (openedLayerName.contains(layer.getName())) {
                 int position = layerList.indexOf(layer.getName());
                 if (position >= 0) {
@@ -252,8 +259,9 @@ public class MapActivity extends AppCompatActivity {
                 if (TextUtils.equals(name, layer.getName()) && map != null) {
                     NTPoint ntPoint = map.getDefaultLocation();
                     if (ntPoint != null) {
-                        mapPoint = new Point(ntPoint.getX(), ntPoint.getY());
-                        mapView.centerAndZoom(ntPoint.getX(), ntPoint.getY(), map.getDefaultLevel());
+                        mapPoint = new Point(ntPoint.getX(), ntPoint.getY(), SpatialReferences.getWgs84());
+                        mapView.setViewpointCenterAsync(
+                                mapPoint, 50000);
                     }
                 }
             } else {
@@ -268,7 +276,7 @@ public class MapActivity extends AppCompatActivity {
 
     // For layer list
     private void setLayerVisibleByName(String name, boolean visible) {
-        for (Layer layer : mapView.getLayers()) {
+        for (Layer layer : mapView.getMap().getOperationalLayers()) {
             if (TextUtils.equals(layer.getName(), name)) {
                 layer.setVisible(visible);
                 break;

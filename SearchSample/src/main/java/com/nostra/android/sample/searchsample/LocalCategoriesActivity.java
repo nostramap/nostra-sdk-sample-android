@@ -67,7 +67,7 @@ public class LocalCategoriesActivity extends AppCompatActivity implements Adapte
         String[] localCategory = new String[]{ntCategoryNameResult[position].getLocalCategoryCode()};
         String[] category = new String[]{ntCategoryNameResult[position].getCategoryCode()};
         NTPoint point = new NTPoint(lon, lat);
-        NTLocationSearchParameter param = new NTLocationSearchParameter("สาทร", category, localCategory);
+        NTLocationSearchParameter param = new NTLocationSearchParameter("", category, localCategory);
         param.setPoint(point);
         param.setNumberOfResult(5);
 
@@ -82,7 +82,8 @@ public class LocalCategoriesActivity extends AppCompatActivity implements Adapte
                             data.getAdminLevel2().getLocalName(),
                             data.getAdminLevel3().getLocalName(),
                             data.getAdminLevel3().getLocalName(),
-                            data.getLocationPoint());
+                            data.getLocationPoint().getY(),
+                            data.getLocationPoint().getX());
                     resultList.add(searchResult);
                 }
                 Intent intent = new Intent(LocalCategoriesActivity.this, ListResultsActivityNew.class);

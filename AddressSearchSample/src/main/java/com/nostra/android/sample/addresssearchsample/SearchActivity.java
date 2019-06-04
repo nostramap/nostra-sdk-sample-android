@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TabHost;
 
+import th.co.nostrasdk.NTSDKEnvironment;
+
 public class SearchActivity extends AppCompatActivity {
     private LocalActivityManager localActivityManager;
 

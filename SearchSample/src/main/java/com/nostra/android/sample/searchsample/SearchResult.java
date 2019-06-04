@@ -11,15 +11,17 @@ public class SearchResult implements Parcelable {
     private String admin2;
     private String admin3;
     private String admin4;
-    private NTPoint point;
+    private Double latitude;
+    private Double longitude;
 
-    SearchResult(String localName, String admin1, String admin2, String admin3, String admin4, NTPoint point) {
+    SearchResult(String localName, String admin1, String admin2, String admin3, String admin4, Double latitude, Double longitude) {
         this.localName = localName;
         this.admin1 = admin1;
         this.admin2 = admin2;
         this.admin3 = admin3;
         this.admin4 = admin4;
-        this.point = point;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     protected SearchResult(Parcel in) {
@@ -28,7 +30,8 @@ public class SearchResult implements Parcelable {
         admin2 = in.readString();
         admin3 = in.readString();
         admin4 = in.readString();
-        point = in.readParcelable(NTPoint.class.getClassLoader());
+        latitude = in.readDouble();
+        longitude = in.readDouble();
     }
 
     public static final Creator<SearchResult> CREATOR = new Creator<SearchResult>() {
@@ -55,7 +58,8 @@ public class SearchResult implements Parcelable {
         dest.writeString(admin2);
         dest.writeString(admin3);
         dest.writeString(admin4);
-        dest.writeParcelable(point, flags);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
     }
 
     String getLocalName() {
@@ -78,7 +82,9 @@ public class SearchResult implements Parcelable {
         return admin4;
     }
 
-    NTPoint getPoint() {
-        return point;
+    Double getLatitude() {
+        return latitude;
     }
+
+    Double getLongitude() { return longitude; }
 }

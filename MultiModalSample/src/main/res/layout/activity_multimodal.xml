@@ -49,9 +49,8 @@
 
     </RelativeLayout>
 
-    <com.esri.android.map.MapView
+    <com.esri.arcgisruntime.mapping.view.MapView
         android:id="@+id/mapView"
-        initExtent="1.0672849926751213E7 593515.9027621585 1.1905414975501748E7 2375599.5357473083"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/location" />

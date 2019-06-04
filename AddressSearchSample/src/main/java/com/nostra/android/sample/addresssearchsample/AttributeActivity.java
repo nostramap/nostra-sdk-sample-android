@@ -8,6 +8,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.search.address.NTAddressSearchParameter;
 import th.co.nostrasdk.search.address.NTAddressSearchResult;
@@ -23,6 +25,7 @@ public class AttributeActivity extends Activity {
     private EditText edtAdminLevel2;
     private EditText edtAdminLevel3;
     private EditText edtPostcode;
+    private Gson gson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +40,7 @@ public class AttributeActivity extends Activity {
         edtAdminLevel2 = (EditText) findViewById(R.id.edtAdminLevel2);
         edtAdminLevel3 = (EditText) findViewById(R.id.edtAdminLevel3);
         edtPostcode = (EditText) findViewById(R.id.edtPostcode);
-
+        gson = new Gson();
         Button btnSearch = (Button) findViewById(R.id.button_Search2);
         btnSearch.setOnClickListener(btnSearchClick);
     }
@@ -63,8 +66,9 @@ public class AttributeActivity extends Activity {
                 public void onResponse(NTAddressSearchResultSet resultSet) {
                     NTAddressSearchResult[] results = resultSet.getResults();
                     if (results.length > 0) {
+                        String jsonResult = gson.toJson(results);
                         Intent intent = new Intent(AttributeActivity.this, ListResultsActivity.class);
-                        intent.putExtra("results", results);
+                        intent.putExtra("results", jsonResult);
                         startActivity(intent);
                     } else {
                         Toast.makeText(AttributeActivity.this, "No Results", Toast.LENGTH_SHORT).show();

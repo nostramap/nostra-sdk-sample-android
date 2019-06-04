@@ -1,10 +1,11 @@
 package com.nostra.android.sample.multimodalsample;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.location.Location;
-import android.location.LocationListener;
+import android.graphics.drawable.BitmapDrawable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -16,33 +17,36 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.esri.android.map.GraphicsLayer;
-import com.esri.android.map.LocationDisplayManager;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.android.runtime.ArcGISRuntime;
-import com.esri.core.geometry.CoordinateConversion;
-import com.esri.core.geometry.Envelope;
-import com.esri.core.geometry.GeometryEngine;
-import com.esri.core.geometry.LinearUnit;
-import com.esri.core.geometry.MapGeometry;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.Polyline;
-import com.esri.core.geometry.SpatialReference;
-import com.esri.core.geometry.Unit;
-import com.esri.core.io.UserCredentials;
-import com.esri.core.map.Graphic;
-import com.esri.core.symbol.PictureMarkerSymbol;
-import com.esri.core.symbol.SimpleLineSymbol;
-import com.esri.core.symbol.SimpleMarkerSymbol;
-
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
+import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
+import com.esri.arcgisruntime.geometry.CoordinateFormatter;
+import com.esri.arcgisruntime.geometry.Envelope;
+import com.esri.arcgisruntime.geometry.Geometry;
+import com.esri.arcgisruntime.geometry.GeometryEngine;
+import com.esri.arcgisruntime.geometry.LinearUnit;
+import com.esri.arcgisruntime.geometry.LinearUnitId;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.Polyline;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedEvent;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedListener;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.Viewpoint;
+import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
+import com.esri.arcgisruntime.mapping.view.LocationDisplay;
+import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.security.UserCredential;
+import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
@@ -58,29 +62,26 @@ import th.co.nostrasdk.network.transport.NTMultiModalTransportResult;
 import th.co.nostrasdk.network.transport.NTMultiModalTransportService;
 import th.co.nostrasdk.network.transport.NTMultiModalTransportationMode;
 
-public class MainActivity extends AppCompatActivity implements OnStatusChangedListener {
+public class MainActivity extends AppCompatActivity implements LoadStatusChangedListener {
     private MapView mapView;
     private EditText edtToLocation;
     private EditText edtFromLocation;
     private RelativeLayout relativeLayout;
     private TextView txvMinMeter;
     private ImageView imvCurrent;
-    private TextView txvTravelBy;
 
     private NTMapPermissionResult[] ntMapResults;
-    private LocationDisplayManager locationManager;
+    private LocationDisplay locationDisplay;
 
-    private GraphicsLayer lineGraphicLayer = new GraphicsLayer();
-    private GraphicsLayer pinGraphicLayer = new GraphicsLayer();
-    private GraphicsLayer SymbolCircleGraphicsLayer = new GraphicsLayer();
-    private GraphicsLayer pinGraphicToLocation = new GraphicsLayer();
-    private GraphicsLayer pinGraphicFromLocation = new GraphicsLayer();
-    private MapGeometry mapGeometry;
+    private GraphicsOverlay lineGraphicLayer = new GraphicsOverlay(GraphicsOverlay.RenderingMode.STATIC);
+    private GraphicsOverlay pinGraphicLayer = new GraphicsOverlay();
+    private GraphicsOverlay SymbolCircleGraphicsLayer = new GraphicsOverlay(GraphicsOverlay.RenderingMode.STATIC);
+    private GraphicsOverlay pinGraphicToLocation = new GraphicsOverlay();
+    private GraphicsOverlay pinGraphicFromLocation = new GraphicsOverlay();
     private Polyline polyline;
 
     private Point pointToLocation;
     private Point pointFromLocation;
-    private Point mapPoint;
     private int fromLocation = 1;
     private int toLocation = 0;
     private int travelCode = 2;
@@ -95,10 +96,10 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
     private String[] type;
     private double totalMinute;
     private double totalMeter;
+    private Envelope lastExtent;
 
     private DecimalFormat df = new DecimalFormat("0.00");
-    private final SpatialReference INPUT_SR = SpatialReference.create(SpatialReference.WKID_WGS84);
-    private final SpatialReference OUTPUT_SR = SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE);
+    private final SpatialReference INPUT_SR = SpatialReferences.getWgs84();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -106,21 +107,21 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
         setContentView(R.layout.activity_multimodal);
 
         // TODO: Setting SDK Environment (API KEY)
-        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
-        // TODO: Setting Client ID
-        ArcGISRuntime.setClientId("CLIENT_ID");
+        NTSDKEnvironment.setEnvironment("API_KEY", this);
+        // TODO: Setting Licence ID
+        ArcGISRuntimeEnvironment.setLicense("Licence_ID");
 
-        edtToLocation = (EditText) findViewById(R.id.edtToLocation);
-        edtFromLocation = (EditText) findViewById(R.id.edtFromLocation);
-        ImageButton imbNavigation = (ImageButton) findViewById(R.id.imbNavigation);
+        edtToLocation = findViewById(R.id.edtToLocation);
+        edtFromLocation = findViewById(R.id.edtFromLocation);
+        ImageButton imbNavigation = findViewById(R.id.imbNavigation);
         imbNavigation.setOnClickListener(navigation);
-        txvTravelBy = (TextView) findViewById(R.id.txvTravelBy);
-        relativeLayout = (RelativeLayout) findViewById(R.id.relativeLayoutMinute);
-        txvMinMeter = (TextView) findViewById(R.id.txvMinMeter);
-        ImageView imvResultsDirection = (ImageView) findViewById(R.id.imvResultsDirection);
+        TextView txvTravelBy = findViewById(R.id.txvTravelBy);
+        relativeLayout = findViewById(R.id.relativeLayoutMinute);
+        txvMinMeter = findViewById(R.id.txvMinMeter);
+        ImageView imvResultsDirection = findViewById(R.id.imvResultsDirection);
         imvResultsDirection.setOnClickListener(direction);
-        imvCurrent = (ImageView) findViewById(R.id.imvCurrent);
-        mapView = (MapView) findViewById(R.id.mapView);
+        imvCurrent = findViewById(R.id.imvCurrent);
+        mapView = findViewById(R.id.mapView);
 
         initialMap();
 
@@ -129,11 +130,13 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, TravelByActivity.class);
                 startActivityForResult(intent, travelCode);
+                lastExtent = mapView.getVisibleArea().getExtent();
             }
         });
     }
 
     //Add map and current location
+    @SuppressLint("ClickableViewAccessibility")
     private void initialMap() {
         NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
@@ -147,15 +150,23 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                     // TODO: Insert referrer
                     String referrer = "REFERRER";
 
-                    UserCredentials credentials = new UserCredentials();
-                    credentials.setUserToken(token, referrer);
-                    credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
+                    UserCredential credentials = UserCredential.createFromToken(token, referrer);
+                    ArcGISTiledLayer layer = new ArcGISTiledLayer(url);
+                    layer.setCredential(credentials);
+                    Basemap basemap = new Basemap(layer);
+                    ArcGISMap arcGISMap = new ArcGISMap(basemap);
 
-                    ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
-                    mapView.addLayer(layer);
-                    mapView.addLayer(lineGraphicLayer);
-                    mapView.addLayer(pinGraphicLayer);
-                    mapView.addLayer(SymbolCircleGraphicsLayer);
+                    // Set listener
+                    arcGISMap.addLoadStatusChangedListener(MainActivity.this);
+
+                    mapView.setMap(arcGISMap);
+                    mapView.setAttributionTextVisible(false);
+                    mapView.getGraphicsOverlays().add(lineGraphicLayer);
+                    mapView.getGraphicsOverlays().add(pinGraphicLayer);
+                    mapView.getGraphicsOverlays().add(SymbolCircleGraphicsLayer);
+                    mapView.getGraphicsOverlays().add(pinGraphicFromLocation);
+                    mapView.getGraphicsOverlays().add(pinGraphicToLocation);
+
                 }
             }
 
@@ -165,38 +176,32 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
             }
         });
 
-        mapView.setOnStatusChangedListener(this);
-
         //Zoom to current location
         imvCurrent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mapView.centerAt(mapPoint, true);
+                mapView.setViewpointCenterAsync(mapView.getLocationDisplay().getLocation().getPosition());
             }
         });
 
-        edtFromLocation.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-                    Intent intent = new Intent(MainActivity.this, PinMarkOnMapActivity.class);
-                    intent.putExtra("Location", "fromLocation");
-                    startActivityForResult(intent, fromLocation);
-                }
-                return true;
+        edtFromLocation.setOnTouchListener((v, event) -> {
+            if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                Intent intent = new Intent(MainActivity.this, PinMarkOnMapActivity.class);
+                intent.putExtra("Location", "fromLocation");
+                startActivityForResult(intent, fromLocation);
+                lastExtent = mapView.getVisibleArea().getExtent();
             }
+            return true;
         });
 
-        edtToLocation.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-                    Intent intent = new Intent(MainActivity.this, PinMarkOnMapActivity.class);
-                    intent.putExtra("Location", "toLocation");
-                    startActivityForResult(intent, toLocation);
-                }
-                return true;
+        edtToLocation.setOnTouchListener((v, event) -> {
+            if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                Intent intent = new Intent(MainActivity.this, PinMarkOnMapActivity.class);
+                intent.putExtra("Location", "toLocation");
+                startActivityForResult(intent, toLocation);
+                lastExtent = mapView.getVisibleArea().getExtent();
             }
+            return true;
         });
     }
 
@@ -246,17 +251,15 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                 Toast.makeText(MainActivity.this, "Select Travel", Toast.LENGTH_SHORT).show();
             } else if (toLocationCenterX != 0 && toLocationCenterY != 0 & fromLocationCenterX != 0 &&
                     fromLocationCenterY != 0 && resultTravel.size() != 0) {
-                pointToLocation = new Point(toLocationCenterX, toLocationCenterY);
-                String decimalDegrees = CoordinateConversion.pointToDecimalDegrees(pointToLocation,
-                        mapView.getSpatialReference(), 7);
-                final Point pointToLocation = CoordinateConversion.decimalDegreesToPoint(decimalDegrees,
-                        SpatialReference.create(SpatialReference.WKID_WGS84));
+                pointToLocation = new Point(toLocationCenterX, toLocationCenterY, SpatialReferences.getWebMercator());
+                String decimalDegrees = CoordinateFormatter.toLatitudeLongitude(pointToLocation, CoordinateFormatter.LatitudeLongitudeFormat.DECIMAL_DEGREES,
+                        7);
+                final Point pointToLocation = CoordinateFormatter.fromLatitudeLongitude(decimalDegrees, SpatialReferences.getWgs84());
 
-                pointFromLocation = new Point(fromLocationCenterX, fromLocationCenterY);
-                String decimalDegrees2 = CoordinateConversion.pointToDecimalDegrees(pointFromLocation,
-                        mapView.getSpatialReference(), 7);
-                final Point pointFromLocation = CoordinateConversion.decimalDegreesToPoint(decimalDegrees2,
-                        SpatialReference.create(SpatialReference.WKID_WGS84));
+                pointFromLocation = new Point(fromLocationCenterX, fromLocationCenterY, SpatialReferences.getWebMercator());
+                String decimalDegrees2 = CoordinateFormatter.toLatitudeLongitude(pointFromLocation, CoordinateFormatter.LatitudeLongitudeFormat.DECIMAL_DEGREES,
+                        7);
+                final Point pointFromLocation = CoordinateFormatter.fromLatitudeLongitude(decimalDegrees2, SpatialReferences.getWgs84());
 
                 NTLocation[] stops = new NTLocation[]{
                         new NTLocation("toLocation", pointToLocation.getY(), pointToLocation.getX()),
@@ -307,47 +310,46 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
                             if (minute != null) {
                                 directions = minute.getDirections();
                             }
-                            pinGraphicToLocation.removeAll();
-                            pinGraphicFromLocation.removeAll();
-                            pinGraphicLayer.removeAll();
-                            lineGraphicLayer.removeAll();
-                            SymbolCircleGraphicsLayer.removeAll();
+                            pinGraphicToLocation.getGraphics().clear();
+                            pinGraphicFromLocation.getGraphics().clear();
+                            pinGraphicLayer.getGraphics().clear();
+                            lineGraphicLayer.getGraphics().clear();
+                            SymbolCircleGraphicsLayer.getGraphics().clear();
                             for (int i = 0; i < directions.length; i++) {
                                 String json = directions[i].getPathJson();
-                                JsonParser parser = new JsonFactory().createJsonParser(json);
-                                mapGeometry = GeometryEngine.jsonToGeometry(parser);
-                                polyline = (Polyline) GeometryEngine.project(mapGeometry.getGeometry(), INPUT_SR, OUTPUT_SR);
-                                lineGraphicLayer.addGraphic(new Graphic(polyline, new SimpleLineSymbol
-                                        (ContextCompat.getColor(getApplicationContext(), R.color.colorGreen), 5)));
-
+                                Geometry geometry = Geometry.fromJson(json);
+                                polyline = (Polyline) GeometryEngine.project(geometry, INPUT_SR);
+                                lineGraphicLayer.getGraphics().add(new Graphic(polyline, new SimpleLineSymbol
+                                        (SimpleLineSymbol.Style.SOLID, ContextCompat.getColor(getApplicationContext(), R.color.colorGreen), 5)));
                                 SimpleMarkerSymbol SymbolCircle = new SimpleMarkerSymbol
-                                        (ContextCompat.getColor(getApplicationContext(), R.color.colorLightGreen), 10,
-                                                SimpleMarkerSymbol.STYLE.CIRCLE);
+                                        (SimpleMarkerSymbol.Style.CIRCLE, ContextCompat.getColor(getApplicationContext(), R.color.colorLightGreen), 10);
                                 List<double[]> PathCircle = directions[i].getPath();
                                 if (PathCircle != null) {
                                     double[] Circle = PathCircle.get(0);
-                                    Point point = GeometryEngine.project(Circle[0], Circle[1], OUTPUT_SR);
+                                    Geometry point = GeometryEngine.project(new Point(Circle[0], Circle[1]), INPUT_SR);
                                     Graphic pointGraphic = new Graphic(point, SymbolCircle);
-                                    SymbolCircleGraphicsLayer.addGraphic(pointGraphic);
+                                    SymbolCircleGraphicsLayer.getGraphics().add(pointGraphic);
                                 }
 
                             }
-                            PictureMarkerSymbol pinFinish = new PictureMarkerSymbol(MainActivity.this,
-                                    ContextCompat.getDrawable(getApplicationContext(), R.drawable.flag));
+                            BitmapDrawable fromFlagDrawable = (BitmapDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.flag, getTheme());
+                            PictureMarkerSymbol pinFinish = PictureMarkerSymbol.createAsync(fromFlagDrawable).get();
+
                             List<double[]> Path = directions[0].getPath();
                             List<double[]> Path2 = directions[directions.length - 1].getPath();
                             if (Path != null && Path2 != null) {
                                 double[] firstPoint = Path.get(0);
-                                Point point = GeometryEngine.project(firstPoint[0], firstPoint[1], OUTPUT_SR);
+                                Geometry point = GeometryEngine.project(new Point(firstPoint[0], firstPoint[1]), INPUT_SR);
                                 Graphic graphicPintoLocation = new Graphic(point, pinFinish);
 
-                                PictureMarkerSymbol pinStart = new PictureMarkerSymbol(MainActivity.this,
-                                        ContextCompat.getDrawable(getApplicationContext(), R.drawable.flag_des));
+                                BitmapDrawable destFlagDrawable = (BitmapDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.flag_des, getTheme());
+                                PictureMarkerSymbol pinDest = PictureMarkerSymbol.createAsync(destFlagDrawable).get();
                                 double[] lastPoint = Path2.get(Path2.size() - 1);
-                                Point point2 = GeometryEngine.project(lastPoint[0], lastPoint[1], OUTPUT_SR);
-                                Graphic graphicPinFromLocation = new Graphic(point2, pinStart);
+                                Geometry point2 = GeometryEngine.project(new Point(lastPoint[0], lastPoint[1]), INPUT_SR);
+                                Graphic graphicPinFromLocation = new Graphic(point2, pinDest);
 
-                                pinGraphicLayer.addGraphics(new Graphic[]{graphicPintoLocation, graphicPinFromLocation});
+                                pinGraphicLayer.getGraphics().add(graphicPintoLocation);
+                                pinGraphicLayer.getGraphics().add(graphicPinFromLocation);
                             }
                             relativeLayout.setVisibility(View.VISIBLE);
                             NTMultiModalRoute meterResult = result.getMeter();
@@ -415,75 +417,88 @@ public class MainActivity extends AppCompatActivity implements OnStatusChangedLi
 
     //Add pin on initialMap
     private void pinMarkOnMap() {
-        pinGraphicToLocation.removeAll();
+        pinGraphicToLocation.getGraphics().clear();
         if (toLocationCenterX != 0 && toLocationCenterY != 0) {
             pointToLocation = new Point(toLocationCenterX, toLocationCenterY);
-            PictureMarkerSymbol pinMarkToLocation = new PictureMarkerSymbol(MainActivity.this,
-                    ContextCompat.getDrawable(this,R.drawable.flag));
-            Graphic graphic = new Graphic(pointToLocation, pinMarkToLocation);
-            pinGraphicToLocation.addGraphic(graphic);
-            mapView.addLayer(pinGraphicToLocation);
+            BitmapDrawable fromFlagDrawable = (BitmapDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.flag, getTheme());
+            try {
+                PictureMarkerSymbol pinMarkToLocation = PictureMarkerSymbol.createAsync(fromFlagDrawable).get();
+                Graphic graphic = new Graphic(pointToLocation, pinMarkToLocation);
+                pinGraphicToLocation.getGraphics().add(graphic);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         } else {
             Toast.makeText(MainActivity.this, "Select start.", Toast.LENGTH_SHORT).show();
         }
 
-        pinGraphicFromLocation.removeAll();
+        pinGraphicFromLocation.getGraphics().clear();
         if (fromLocationCenterX != 0 && fromLocationCenterY != 0) {
             pointFromLocation = new Point(fromLocationCenterX, fromLocationCenterY);
-            PictureMarkerSymbol pinMarkToLocation = new PictureMarkerSymbol(MainActivity.this,
-                    ContextCompat.getDrawable(this,R.drawable.flag_des));
-            Graphic graphic = new Graphic(pointFromLocation, pinMarkToLocation);
-            pinGraphicFromLocation.addGraphic(graphic);
-            mapView.addLayer(pinGraphicFromLocation);
+
+            BitmapDrawable destFlagDrawable = (BitmapDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.flag_des, getTheme());
+            try {
+                PictureMarkerSymbol pinMarkToLocation = PictureMarkerSymbol.createAsync(destFlagDrawable).get();
+                Graphic graphic = new Graphic(pointFromLocation, pinMarkToLocation);
+                pinGraphicFromLocation.getGraphics().add(graphic);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         } else {
             Toast.makeText(MainActivity.this, "Select destination.", Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    public void onStatusChanged(Object source, STATUS status) {
-        if (source == mapView && status == OnStatusChangedListener.STATUS.INITIALIZED) {
-            locationManager = mapView.getLocationDisplayManager();
-            locationManager.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-            locationManager.setLocationListener(new LocationListener() {
-
+    public void loadStatusChanged(LoadStatusChangedEvent loadStatusChangedEvent) {
+        String mapLoadStatus = loadStatusChangedEvent.getNewLoadStatus().name();
+        if ("LOADED".equals(mapLoadStatus)) {
+            Envelope env = new Envelope(1.0672849926751213E7, 593515.9027621585,
+                    1.1905414975501748E7, 2375599.5357473083, SpatialReference.create(102100));
+            Viewpoint viewpoint = new Viewpoint(env);
+            mapView.setViewpoint(viewpoint);
+            locationDisplay = mapView.getLocationDisplay();
+            locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.RECENTER);
+            locationDisplay.addLocationChangedListener(new LocationDisplay.LocationChangedListener() {
                 boolean locationChanged = false;
 
-                // Zooms to the current location when first GPS fix arrives.
                 @Override
-                public void onLocationChanged(Location loc) {
+                public void onLocationChanged(LocationDisplay.LocationChangedEvent locationChangedEvent) {
                     if (!locationChanged) {
                         locationChanged = true;
-                        double locY = loc.getLatitude();
-                        double locX = loc.getLongitude();
-                        Point wgsPoint = new Point(locX, locY);
-                        mapPoint = (Point) GeometryEngine.project(wgsPoint,
-                                SpatialReference.create(4326),
-                                mapView.getSpatialReference());
-
-                        Unit mapUnit = mapView.getSpatialReference().getUnit();
-                        double zoomWidth = Unit.convertUnits(5,
-                                Unit.create(LinearUnit.Code.MILE_US),
-                                mapUnit);
-                        Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
-                        mapView.setExtent(zoomExtent);
+                        LinearUnit unit = new LinearUnit(LinearUnitId.MILES);
+                        double zoomWidth = unit.toMeters(50);
+                        mapView.setViewpointCenterAsync(locationDisplay.getLocation().getPosition(), zoomWidth);
                     }
                 }
-
-                @Override
-                public void onProviderDisabled(String arg0) {
-                }
-
-                @Override
-                public void onProviderEnabled(String arg0) {
-                }
-
-                @Override
-                public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-
-                }
             });
-            locationManager.start();
+            locationDisplay.startAsync();
         }
+    }
+
+    @Override
+    protected void onPause() {
+        mapView.pause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.resume();
+        if(lastExtent != null) {
+            Viewpoint viewpoint = new Viewpoint(lastExtent);
+            mapView.setViewpointAsync(viewpoint);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.dispose();
     }
 }

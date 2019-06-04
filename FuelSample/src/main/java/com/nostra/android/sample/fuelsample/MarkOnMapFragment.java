@@ -1,8 +1,6 @@
 package com.nostra.android.sample.fuelsample;
 
 import android.content.Intent;
-import android.location.Location;
-import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,17 +10,19 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.esri.android.map.LocationDisplayManager;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.core.geometry.Envelope;
-import com.esri.core.geometry.GeometryEngine;
-import com.esri.core.geometry.LinearUnit;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.SpatialReference;
-import com.esri.core.geometry.Unit;
-import com.esri.core.io.UserCredentials;
+import com.esri.arcgisruntime.geometry.Envelope;
+import com.esri.arcgisruntime.geometry.GeometryEngine;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.Polygon;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.Viewpoint;
+import com.esri.arcgisruntime.mapping.view.LocationDisplay;
+import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.security.UserCredential;
 
 import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.map.NTMapPermissionResult;
@@ -30,13 +30,14 @@ import th.co.nostrasdk.map.NTMapPermissionResultSet;
 import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
 
-public class MarkOnMapFragment extends Fragment implements OnStatusChangedListener {
+public class MarkOnMapFragment extends Fragment {
     private MapView mMapView;
 
-    private Point point;
+    private Point point = null;
     private Point mapPoint;
     private NTMapPermissionResult[] ntMapResults;
-    private LocationDisplayManager locationDisplayManager;
+    private LocationDisplay locationDisplay;
+    private boolean locationChanged = false;
 
     @Nullable
     @Override
@@ -48,19 +49,22 @@ public class MarkOnMapFragment extends Fragment implements OnStatusChangedListen
         btnOk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                point = mMapView.getCenter();
-                Point wgsPoint = (Point) GeometryEngine.project(point,
-                        SpatialReference.create(SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE),
-                        SpatialReference.create(SpatialReference.WKID_WGS84));
+                Polygon visibleArea = mMapView.getVisibleArea();
+                Envelope extent = visibleArea.getExtent();
+                point = extent.getCenter();
 
-                Intent intent = new Intent(getActivity(), ListResultsActivity.class);
-                intent.putExtra("x", wgsPoint.getX());
-                intent.putExtra("y", wgsPoint.getY());
-                startActivity(intent);
+                if (visibleArea != null && extent != null && point != null) {
+                    Point wgsPoint = (Point) GeometryEngine.project(point, SpatialReferences.getWgs84());
+                    Intent intent = new Intent(getActivity(), ListResultsActivity.class);
+                    intent.putExtra("x", wgsPoint.getX());
+                    intent.putExtra("y", wgsPoint.getY());
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(requireContext(), "Map is not ready", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
-        // Current Location
-        mMapView.setOnStatusChangedListener(this);
         // Initialize map
         initialMap();
 
@@ -70,17 +74,17 @@ public class MarkOnMapFragment extends Fragment implements OnStatusChangedListen
     @Override
     public void onResume() {
         super.onResume();
-        mMapView.unpause();
-        if (locationDisplayManager != null) {
-            locationDisplayManager.resume();
+        mMapView.resume();
+        if (locationDisplay!=null && !locationDisplay.isStarted()) {
+            locationDisplay.startAsync();
         }
     }
 
     @Override
     public void onPause() {
         mMapView.pause();
-        if (locationDisplayManager != null) {
-            locationDisplayManager.pause();
+        if (locationDisplay != null) {
+            locationDisplay.stop();
         }
         super.onPause();
     }
@@ -99,12 +103,24 @@ public class MarkOnMapFragment extends Fragment implements OnStatusChangedListen
                     // TODO: Insert referrer
                     String referrer = "REFERRER";
 
-                    UserCredentials credentials = new UserCredentials();
-                    credentials.setUserToken(token, referrer);
-                    credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
+                    UserCredential credentials =  UserCredential.createFromToken(token,referrer);
 
-                    ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
-                    mMapView.addLayer(layer);
+                    ArcGISTiledLayer tiledLayer = new ArcGISTiledLayer(url);
+                    tiledLayer.setCredential(credentials);
+                    Basemap baseMap = new Basemap(tiledLayer);
+
+                    Envelope env = new Envelope(
+                            1.0672849926751213E7,
+                            593515.9027621585,
+                            1.1905414975501748E7,
+                            2375599.5357473083,
+                            SpatialReference.create(102100)
+                    );
+                    Viewpoint vp = new Viewpoint(env);
+                    ArcGISMap mMap = new ArcGISMap(baseMap);
+                    mMap.setInitialViewpoint(vp);
+                    mMap.addDoneLoadingListener(doneLoadingListener);
+                    mMapView.setMap(mMap);
                 }
             }
 
@@ -114,6 +130,29 @@ public class MarkOnMapFragment extends Fragment implements OnStatusChangedListen
             }
         });
     }
+
+    private Runnable doneLoadingListener = new Runnable() {
+        @Override
+        public void run() {
+            locationDisplay = mMapView.getLocationDisplay();
+            locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.OFF);
+            locationDisplay.addLocationChangedListener(locationChangedEvent -> {
+                // Zooms to the current location when first GPS fix arrives.
+                if (!locationChanged) {
+                    locationChanged = true;
+                    Point loc = locationChangedEvent.getLocation().getPosition();
+                    double locY = loc.getY();
+                    double locX = loc.getX();
+                    Point wgsPoint = new Point(locX, locY);
+                    mapPoint = (Point) GeometryEngine.project(
+                            wgsPoint, SpatialReferences.getWgs84());
+
+                    mMapView.setViewpointCenterAsync(mapPoint, 5000);
+                }
+            });
+            locationDisplay.startAsync();
+        }
+    };
 
     private NTMapPermissionResult getThailandBasemap() {
         for (NTMapPermissionResult result : ntMapResults) {
@@ -125,48 +164,4 @@ public class MarkOnMapFragment extends Fragment implements OnStatusChangedListen
         return null;
     }
 
-    @Override
-    public void onStatusChanged(Object source, STATUS status) {
-        if (source == mMapView && status == OnStatusChangedListener.STATUS.INITIALIZED) {
-            locationDisplayManager = mMapView.getLocationDisplayManager();
-            locationDisplayManager.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-            locationDisplayManager.setLocationListener(new LocationListener() {
-                boolean locationChanged = false;
-
-                // Zooms to the current location when first GPS fix arrives.
-                @Override
-                public void onLocationChanged(Location loc) {
-                    if (!locationChanged) {
-                        locationChanged = true;
-                        double locY = loc.getLatitude();
-                        double locX = loc.getLongitude();
-                        Point wgsPoint = new Point(locX, locY);
-                        mapPoint = (Point) GeometryEngine.project(
-                                wgsPoint, SpatialReference.create(4326),
-                                mMapView.getSpatialReference());
-
-                        Unit mapUnit = mMapView.getSpatialReference().getUnit();
-                        double zoomWidth = Unit.convertUnits(5,
-                                Unit.create(LinearUnit.Code.MILE_US),
-                                mapUnit);
-                        Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
-                        mMapView.setExtent(zoomExtent);
-                    }
-                }
-
-                @Override
-                public void onProviderDisabled(String arg0) {
-                }
-
-                @Override
-                public void onProviderEnabled(String arg0) {
-                }
-
-                @Override
-                public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-                }
-            });
-            locationDisplayManager.start();
-        }
-    }
 }

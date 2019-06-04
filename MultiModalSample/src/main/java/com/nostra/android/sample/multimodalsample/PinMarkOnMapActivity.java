@@ -1,7 +1,5 @@
 package com.nostra.android.sample.multimodalsample;
 
-import android.location.Location;
-import android.location.LocationListener;
 import android.os.StrictMode;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -9,17 +7,20 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.esri.android.map.LocationDisplayManager;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.core.geometry.Envelope;
-import com.esri.core.geometry.GeometryEngine;
-import com.esri.core.geometry.LinearUnit;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.SpatialReference;
-import com.esri.core.geometry.Unit;
-import com.esri.core.io.UserCredentials;
+import com.esri.arcgisruntime.geometry.Envelope;
+import com.esri.arcgisruntime.geometry.LinearUnit;
+import com.esri.arcgisruntime.geometry.LinearUnitId;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedEvent;
+import com.esri.arcgisruntime.loadable.LoadStatusChangedListener;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.Viewpoint;
+import com.esri.arcgisruntime.mapping.view.LocationDisplay;
+import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.security.UserCredential;
 
 import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
@@ -29,76 +30,32 @@ import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
 import th.co.nostrasdk.common.NTPoint;
 
-public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusChangedListener {
+public class PinMarkOnMapActivity extends AppCompatActivity implements LoadStatusChangedListener {
     private MapView mapView;
-    private LocationDisplayManager locationDisplayManager;
+    private LocationDisplay locationDisplay;
     private NTMapPermissionResult[] ntMapResults;
+    private boolean isLoaded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pin_mark_on_map);
 
-        Button btnOk = (Button) findViewById(R.id.btnOk);
-        Button btnCancel = (Button) findViewById(R.id.btnCancel);
+        Button btnOk = findViewById(R.id.btnOk);
+        Button btnCancel = findViewById(R.id.btnCancel);
         btnOk.setOnClickListener(btnOkClick);
         btnCancel.setOnClickListener(btnCancelClick);
 
         initialMap();
     }
 
-    @Override
-    public void onStatusChanged(Object source, STATUS status) {
-        if (source == mapView && status == OnStatusChangedListener.STATUS.INITIALIZED) {
-            locationDisplayManager = mapView.getLocationDisplayManager();
-            locationDisplayManager.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-            locationDisplayManager.setLocationListener(new LocationListener() {
-                boolean locationChanged = false;
-
-                // Zooms to the current location when first GPS fix arrives.
-                @Override
-                public void onLocationChanged(Location loc) {
-                    if (!locationChanged) {
-                        locationChanged = true;
-                        double locY = loc.getLatitude();
-                        double locX = loc.getLongitude();
-                        Point wgsPoint = new Point(locX, locY);
-                        Point mapPoint = (Point) GeometryEngine
-                                .project(wgsPoint,
-                                        SpatialReference.create(4326),
-                                        mapView.getSpatialReference());
-
-                        Unit mapUnit = mapView.getSpatialReference().getUnit();
-                        double zoomWidth = Unit.convertUnits(5, Unit.create(LinearUnit.Code.MILE_US),mapUnit);
-                        Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
-                        mapView.setExtent(zoomExtent);
-                    }
-                }
-
-                @Override
-                public void onProviderDisabled(String arg0) {
-                }
-
-                @Override
-                public void onProviderEnabled(String arg0) {
-                }
-
-                @Override
-                public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-
-                }
-            });
-            locationDisplayManager.start();
-        }
-    }
-
     //Initialize map and current location
     private void initialMap() {
-        mapView = (MapView) findViewById(R.id.mapView);
+        mapView = findViewById(R.id.mapView);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy); // to run network operation on main thread
-        // TODO: Setting SDK Environment (API Key)
-        NTSDKEnvironment.setEnvironment("TOKEN_SDK", this);
+        // TODO: Setting SDK Environment (API KEY)
+        NTSDKEnvironment.setEnvironment("API_KEY", this);
         NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
             public void onResponse(NTMapPermissionResultSet result) {
@@ -111,29 +68,23 @@ public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusC
                     // TODO: Insert referrer
                     String referrer = "REFERRER";
 
-                    UserCredentials credentials = new UserCredentials();
-                    credentials.setUserToken(token, referrer);
-                    credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
-
-                    ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
-                    mapView.addLayer(layer);
-
-                    NTPoint ntPoint = map.getDefaultLocation();
-                    if (ntPoint != null) {
-                        double lon = ntPoint.getX();
-                        double lat = ntPoint.getY();
-                        mapView.centerAt(lat, lon, true);
-                    }
+                    UserCredential credentials = UserCredential.createFromToken(token, referrer);
+                    ArcGISTiledLayer layer = new ArcGISTiledLayer(url);
+                    layer.setCredential(credentials);
+                    Basemap basemap = new Basemap(layer);
+                    ArcGISMap arcGISMap = new ArcGISMap(basemap);
+                    mapView.setMap(arcGISMap);
+                    mapView.setAttributionTextVisible(false);
+                    // Set listener
+                    arcGISMap.addLoadStatusChangedListener(PinMarkOnMapActivity.this);
                 }
             }
 
             @Override
-            public void onError(String errorMessage,int statusCode) {
-                Toast.makeText(PinMarkOnMapActivity.this, errorMessage,Toast.LENGTH_SHORT).show();
+            public void onError(String errorMessage, int statusCode) {
+                Toast.makeText(PinMarkOnMapActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
-
-        mapView.setOnStatusChangedListener(this);
     }
 
     private View.OnClickListener btnCancelClick = new View.OnClickListener() {
@@ -150,15 +101,15 @@ public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusC
             int toLocationCode = 0;
             int fromLocationCode = 1;
             Point pointCenter;
-            if(!mapView.isLoaded()){
+            if (!isLoaded) {
                 Toast.makeText(PinMarkOnMapActivity.this, "Loading Map", Toast.LENGTH_SHORT).show();
-            }else  if (getIntent().getExtras().getString("Location").equals("toLocation")) {
-                pointCenter = mapView.getCenter();
+            } else if (getIntent().getExtras().getString("Location").equals("toLocation")) {
+                pointCenter = mapView.getVisibleArea().getExtent().getCenter();
                 getIntent().putExtra("CenterX", pointCenter.getX());
                 getIntent().putExtra("CenterY", pointCenter.getY());
                 getIntent().putExtra("ToLocation", toLocationCode);
             } else if (getIntent().getExtras().getString("Location").equals("fromLocation")) {
-                pointCenter = mapView.getCenter();
+                pointCenter = mapView.getVisibleArea().getExtent().getCenter();
                 getIntent().putExtra("CenterX", pointCenter.getX());
                 getIntent().putExtra("CenterY", pointCenter.getY());
                 getIntent().putExtra("FromLocation", fromLocationCode);
@@ -176,5 +127,33 @@ public class PinMarkOnMapActivity extends AppCompatActivity implements OnStatusC
             }
         }
         return null;
+    }
+
+    @Override
+    public void loadStatusChanged(LoadStatusChangedEvent loadStatusChangedEvent) {
+        String mapLoadStatus = loadStatusChangedEvent.getNewLoadStatus().name();
+        if ("LOADED".equals(mapLoadStatus)) {
+            isLoaded = true;
+            Envelope env = new Envelope(1.0672849926751213E7, 593515.9027621585,
+                    1.1905414975501748E7, 2375599.5357473083, SpatialReference.create(102100));
+            Viewpoint viewpoint = new Viewpoint(env);
+            mapView.setViewpoint(viewpoint);
+            locationDisplay = mapView.getLocationDisplay();
+            locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.RECENTER);
+            locationDisplay.addLocationChangedListener(new LocationDisplay.LocationChangedListener() {
+                boolean locationChanged = false;
+
+                @Override
+                public void onLocationChanged(LocationDisplay.LocationChangedEvent locationChangedEvent) {
+                    if (!locationChanged) {
+                        locationChanged = true;
+                        LinearUnit unit = new LinearUnit(LinearUnitId.MILES);
+                        double zoomWidth = unit.toMeters(50);
+                        mapView.setViewpointCenterAsync(locationDisplay.getLocation().getPosition(), zoomWidth);
+                    }
+                }
+            });
+            locationDisplay.startAsync();
+        }
     }
 }

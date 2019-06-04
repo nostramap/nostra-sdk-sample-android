@@ -1,44 +1,51 @@
 package com.nostra.android.sample.closestfacilitysample;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.esri.android.map.GraphicsLayer;
-import com.esri.android.map.LocationDisplayManager;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
-import com.esri.android.map.event.OnLongPressListener;
-import com.esri.android.map.event.OnSingleTapListener;
-import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.android.runtime.ArcGISRuntime;
-import com.esri.core.geometry.Envelope;
-import com.esri.core.geometry.Geometry;
-import com.esri.core.geometry.GeometryEngine;
-import com.esri.core.geometry.MapGeometry;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.SpatialReference;
-import com.esri.core.io.UserCredentials;
-import com.esri.core.map.Graphic;
-import com.esri.core.symbol.CompositeSymbol;
-import com.esri.core.symbol.PictureMarkerSymbol;
-import com.esri.core.symbol.SimpleLineSymbol;
-import com.esri.core.symbol.SimpleMarkerSymbol;
-import com.esri.core.symbol.TextSymbol;
+import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
+import com.esri.arcgisruntime.concurrent.ListenableFuture;
+import com.esri.arcgisruntime.geometry.Envelope;
+import com.esri.arcgisruntime.geometry.Geometry;
+import com.esri.arcgisruntime.geometry.GeometryEngine;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.PointCollection;
+import com.esri.arcgisruntime.geometry.Polyline;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.Viewpoint;
+import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener;
+import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
+import com.esri.arcgisruntime.mapping.view.LocationDisplay;
+import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.security.UserCredential;
+import com.esri.arcgisruntime.symbology.CompositeSymbol;
+import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
+import com.esri.arcgisruntime.symbology.Symbol;
+import com.esri.arcgisruntime.symbology.TextSymbol;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
-
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
@@ -57,8 +64,7 @@ import th.co.nostrasdk.network.facility.NTClosestFacilityResultSet;
 import th.co.nostrasdk.network.facility.NTClosestFacilityService;
 import th.co.nostrasdk.network.facility.NTFacilityDirection;
 
-public class ClosestFacilityActivity extends AppCompatActivity
-        implements OnStatusChangedListener, OnSingleTapListener, OnLongPressListener {
+public class ClosestFacilityActivity extends AppCompatActivity {
 
     private MapView mMapView;
     private RelativeLayout mPinOptionLayout;
@@ -67,15 +73,13 @@ public class ClosestFacilityActivity extends AppCompatActivity
     private ImageButton mBtnLocation;
     private NTMapPermissionResult[] mMapPermissions;
 
-    private GraphicsLayer mGraphicsLayer;
-    private GraphicsLayer mRouteLayer;
-    private SpatialReference inSR = SpatialReference.create(SpatialReference.WKID_WGS84);
-    private SpatialReference outSR = SpatialReference.create(
-            SpatialReference.WKID_WGS84_WEB_MERCATOR_AUXILIARY_SPHERE);
+    private GraphicsOverlay mGraphicsOverlay;
+    private GraphicsOverlay mRouteOverlay;
+    private SpatialReference wgs84 = SpatialReferences.getWgs84();
     private int pinId = -1;
     private boolean pinOnMap;
 
-    private LocationDisplayManager mLocationManager;
+    private LocationDisplay mLocationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,8 +88,9 @@ public class ClosestFacilityActivity extends AppCompatActivity
 
         // TODO: Setting SDK Environment (API KEY)
         NTSDKEnvironment.setEnvironment("API_KEY", this);
-        // TODO: Setting Client ID
-        ArcGISRuntime.setClientId("CLIENT_ID");
+
+        // TODO: Setting Licence ID
+        ArcGISRuntimeEnvironment.setLicense("Licence_ID");
 
         mMapView = (MapView) findViewById(R.id.mapView);
         mPinOptionLayout = (RelativeLayout) findViewById(R.id.rllPinOption);
@@ -104,7 +109,7 @@ public class ClosestFacilityActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 if (pinOnMap) {
-                    mGraphicsLayer.removeGraphic(pinId);
+                    mGraphicsOverlay.getGraphics().remove(pinId);
                     pinOnMap = false;
                 }
                 mPinOptionLayout.setVisibility(View.GONE);
@@ -116,9 +121,9 @@ public class ClosestFacilityActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 // pan to current location
-                Point locationPoint = mLocationManager.getPoint();
+                Point locationPoint = mLocationManager.getMapLocation();
                 if (locationPoint != null) {
-                    mMapView.centerAt(locationPoint, true);
+                    mMapView.setViewpointCenterAsync(locationPoint);
                 }
             }
         });
@@ -127,13 +132,14 @@ public class ClosestFacilityActivity extends AppCompatActivity
         LocationManager manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                 manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            mLocationManager = mMapView.getLocationDisplayManager();
-            mLocationManager.setAutoPanMode(LocationDisplayManager.AutoPanMode.LOCATION);
-            mLocationManager.start();
+            mLocationManager = mMapView.getLocationDisplay();
+            mLocationManager.setAutoPanMode(LocationDisplay.AutoPanMode.RECENTER);
+            mLocationManager.startAsync();
         }
         initializeMap();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initializeMap() {
         NTMapPermissionService.executeAsync(new ServiceRequestListener<NTMapPermissionResultSet>() {
             @Override
@@ -147,19 +153,21 @@ public class ClosestFacilityActivity extends AppCompatActivity
                     // TODO: Insert referrer
                     String referrer = "REFERRER";
 
-                    UserCredentials credentials = new UserCredentials();
-                    credentials.setUserToken(token, referrer);
-                    credentials.setAuthenticationType(UserCredentials.AuthenticationType.TOKEN);
+                    UserCredential credentials = UserCredential.createFromToken(token, referrer);
 
-                    ArcGISTiledMapServiceLayer layer = new ArcGISTiledMapServiceLayer(url, credentials);
-                    mMapView.addLayer(layer);
+                    ArcGISTiledLayer tiledLayer = new ArcGISTiledLayer(url);
+                    tiledLayer.setCredential(credentials);
+                    Basemap baseMap = new Basemap(tiledLayer);
+                    ArcGISMap mMap = new ArcGISMap(baseMap);
+                    mMapView.setMap(mMap);
+                    mMap.addDoneLoadingListener(doneLoadingListener);
                 }
                 // Add graphic layer for add pin and route
-                mRouteLayer = new GraphicsLayer();
-                mMapView.addLayer(mRouteLayer);
+                mRouteOverlay = new GraphicsOverlay();
+                mGraphicsOverlay = new GraphicsOverlay();
 
-                mGraphicsLayer = new GraphicsLayer();
-                mMapView.addLayer(mGraphicsLayer);
+                mMapView.getGraphicsOverlays().add(mRouteOverlay);
+                mMapView.getGraphicsOverlays().add(mGraphicsOverlay);
             }
 
             @Override
@@ -167,15 +175,70 @@ public class ClosestFacilityActivity extends AppCompatActivity
                 Toast.makeText(ClosestFacilityActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
-        mMapView.setOnStatusChangedListener(this);
-        mMapView.setOnSingleTapListener(this);
-        mMapView.setOnLongPressListener(this);
+
+        mMapView.setOnTouchListener(new DefaultMapViewOnTouchListener(this, mMapView) {
+            @Override
+            public boolean onSingleTapConfirmed(MotionEvent e) {
+                if (pinOnMap) {
+                    mGraphicsOverlay.getGraphics().remove(pinId);
+                    pinOnMap = false;
+                }
+                // clear all routes
+                mRouteOverlay.getGraphics().clear();
+
+                if (mPinOptionLayout.getVisibility() == View.VISIBLE) {
+                    mPinOptionLayout.setVisibility(View.GONE);
+                }
+
+                return true;
+            }
+
+            @Override
+            public void onLongPress(MotionEvent e) {
+                if (pinOnMap) {
+                    mGraphicsOverlay.getGraphics().remove(pinId);
+                    pinOnMap = false;
+                }
+                // Clear all routes
+                mRouteOverlay.getGraphics().clear();
+                // Draw pin on map
+                Point screenPoint = screenToLocation(e.getX(), e.getY());
+                Point p = new Point(screenPoint.getX(), screenPoint.getY(), wgs84);
+                Drawable pinDrawable = ResourcesCompat.getDrawable(
+                        getResources(), R.drawable.pin_markonmap, getTheme());
+
+
+                ListenableFuture<PictureMarkerSymbol> symbol =
+                        PictureMarkerSymbol.createAsync((BitmapDrawable) pinDrawable);
+
+                try {
+                    mGraphicsOverlay.getGraphics().add(new Graphic(p, symbol.get()));
+                    pinId = mGraphicsOverlay.getGraphics().size() - 1;
+                    pinOnMap = true;
+                    mPinOptionLayout.setVisibility(View.VISIBLE);
+                } catch (ExecutionException e1) {
+                    e1.printStackTrace();
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+
+            }
+        });
+    }
+
+    private Point screenToLocation(Float x, Float y) {
+        try {
+            Point mapPoint = mMapView.screenToLocation(new android.graphics.Point(Math.round(x), Math.round(y)));
+            return (Point) GeometryEngine.project(mapPoint, SpatialReferences.getWgs84());
+        } catch (NullPointerException e) {
+            return new Point(0, 0);
+        }
     }
 
     private void callService() {
         // Get pin point location
-        Point pinPoint = (Point) mGraphicsLayer.getGraphic(pinId).getGeometry();
-        pinPoint = (Point) GeometryEngine.project(pinPoint, outSR, inSR); // Convert to WGS84
+        Point pinPoint = (Point) mGraphicsOverlay.getGraphics().get(pinId).getGeometry();
+        pinPoint = (Point) GeometryEngine.project(pinPoint, wgs84); // Convert to WGS84
 
         // Setting parameter
         NTLocation[] facilities = new NTLocation[]{
@@ -204,28 +267,22 @@ public class ClosestFacilityActivity extends AppCompatActivity
                     for (NTClosestFacilityResult cfr : results) {
                         String name = TextUtils.isEmpty(cfr.getFacilityName()) ? "" : cfr.getFacilityName();
                         if (name.endsWith("Siam Discovery")) {
-                            lineSymbol = new SimpleLineSymbol(Color.BLUE, 5);
+                            lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 5);
                         } else if (name.endsWith("Siam Center")) {
-                            lineSymbol = new SimpleLineSymbol(Color.RED, 5);
+                            lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.RED, 5);
                         } else if (name.endsWith("Siam Paragon")) {
-                            lineSymbol = new SimpleLineSymbol(Color.MAGENTA, 5);
+                            lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.MAGENTA, 5);
                         } else {
-                            lineSymbol = new SimpleLineSymbol(Color.GREEN, 5);
+                            lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.GREEN, 5);
                         }
-                        try {
-                            JsonParser parser = new JsonFactory().createJsonParser(cfr.getShape());
-                            MapGeometry mapGeometry = GeometryEngine.jsonToGeometry(parser);
-                            Geometry geometry = mapGeometry.getGeometry();
+                        if (cfr.getShape() != null) {
+                            Geometry geometry = Geometry.fromJson(cfr.getShape());
 
                             if (geometry != null && !geometry.isEmpty()) {
-                                geometry = GeometryEngine.project(geometry,
-                                        SpatialReference.create(4326),
-                                        SpatialReference.create(102100));
+                                geometry = GeometryEngine.project(geometry, wgs84);
                                 Graphic routeGraphic = new Graphic(geometry, lineSymbol);
-                                mRouteLayer.addGraphic(routeGraphic);
+                                mRouteOverlay.getGraphics().add(routeGraphic);
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
                         }
                     }
                 }
@@ -249,103 +306,80 @@ public class ClosestFacilityActivity extends AppCompatActivity
         return null;
     }
 
-    @Override
-    public void onStatusChanged(Object source, STATUS status) {
-        if (status == STATUS.LAYER_LOADED) {
+    Runnable doneLoadingListener = new Runnable() {
+        @Override
+        public void run() {
             // Zoom to these 4 places
-            Point mbk = GeometryEngine.project(100.52989481845307, 13.744651781616076, outSR);
-            Point siamDis = GeometryEngine.project(100.53145034771327, 13.746598089591219, outSR);
-            Point siamCenter = GeometryEngine.project(100.53279034433699, 13.746321783330115, outSR);
-            Point siamParagon = GeometryEngine.project(100.53481456769379, 13.746155248206387, outSR);
+            Point mbk = new Point(100.52989481845307, 13.744651781616076, wgs84);
+
+            Point siamDis = new Point(100.53145034771327, 13.746598089591219, wgs84);
+            Point siamCenter = new Point(100.53279034433699, 13.746321783330115, wgs84);
+            Point siamParagon = new Point(100.53481456769379, 13.746155248206387, wgs84);
 
             // Create circle with border symbol
-            SimpleMarkerSymbol symbol = new SimpleMarkerSymbol(Color.WHITE, 50, SimpleMarkerSymbol.STYLE.CIRCLE);
-            symbol.setOutline(new SimpleLineSymbol(Color.BLACK, 5, SimpleLineSymbol.STYLE.SOLID));
+            SimpleMarkerSymbol symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.WHITE, 50);
+            symbol.setOutline(new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLACK, 5));
 
             // Create number symbol
             TextSymbol textSymbol = new TextSymbol(25, "1", Color.BLACK,
                     TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
-
+            TextSymbol textSymbol2 = new TextSymbol(25, "2", Color.BLACK,
+                    TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
+            TextSymbol textSymbol3 = new TextSymbol(25, "3", Color.BLACK,
+                    TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
+            TextSymbol textSymbol4 = new TextSymbol(25, "4", Color.BLACK,
+                    TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
             // Combine 2 symbol and add to map view
             // 1
-            CompositeSymbol compositeSymbol = new CompositeSymbol();
-            compositeSymbol.add(symbol);
-            compositeSymbol.add(textSymbol);
-            mGraphicsLayer.addGraphic(new Graphic(mbk, compositeSymbol));
+            List<Symbol> symbolList = new ArrayList<>();
+            symbolList.add(symbol);
+            symbolList.add(textSymbol);
+            CompositeSymbol compositeSymbol = new CompositeSymbol(symbolList);
+
+            mGraphicsOverlay.getGraphics().add(new Graphic(mbk, compositeSymbol));
 
             // 2
-            textSymbol.setText("2");
-            compositeSymbol.removeAll();
-            compositeSymbol.add(symbol);
-            compositeSymbol.add(textSymbol);
-            mGraphicsLayer.addGraphic(new Graphic(siamDis, compositeSymbol));
+            symbolList.clear();
+            symbolList.add(symbol);
+            symbolList.add(textSymbol2);
+            compositeSymbol = new CompositeSymbol(symbolList);
+            mGraphicsOverlay.getGraphics().add(new Graphic(siamDis, compositeSymbol));
 
             // 3
-            textSymbol.setText("3");
-            compositeSymbol.removeAll();
-            compositeSymbol.add(symbol);
-            compositeSymbol.add(textSymbol);
-            mGraphicsLayer.addGraphic(new Graphic(siamCenter, compositeSymbol));
+            symbolList.clear();
+            symbolList.add(symbol);
+            symbolList.add(textSymbol3);
+            compositeSymbol = new CompositeSymbol(symbolList);
+            mGraphicsOverlay.getGraphics().add(new Graphic(siamCenter, compositeSymbol));
 
             // 4
-            textSymbol.setText("4");
-            compositeSymbol.removeAll();
-            compositeSymbol.add(symbol);
-            compositeSymbol.add(textSymbol);
-            mGraphicsLayer.addGraphic(new Graphic(siamParagon, compositeSymbol));
+            symbolList.clear();
+            symbolList.add(symbol);
+            symbolList.add(textSymbol4);
+            compositeSymbol = new CompositeSymbol(symbolList);
+            mGraphicsOverlay.getGraphics().add(new Graphic(siamParagon, compositeSymbol));
 
             // merge all point to envelope
-            Envelope envelope = new Envelope();
-            envelope.merge(mbk);
-            envelope.merge(siamDis);
-            envelope.merge(siamCenter);
-            envelope.merge(siamParagon);
-
+           PointCollection collection = new PointCollection(wgs84);
+            collection.add(mbk);
+            collection.add(siamCenter);
+            collection.add(siamDis);
+            collection.add(siamParagon);
+            Polyline polyline = new Polyline(collection);
+            Point center =  polyline.getExtent().getCenter();
+            Double width =  polyline.getExtent().getWidth();
+            Double height =  polyline.getExtent().getHeight();
+            Envelope envelope = new Envelope(center, width, height);
+            Viewpoint viewpoint = new Viewpoint(envelope);
             // zoom to the envelope
-            mMapView.setExtent(envelope, 200);
+
+            mMapView.setViewpointAsync(viewpoint, 0.2f);
         }
-    }
-
-    @Override
-    public void onSingleTap(float x, float y) {
-        // If there is a pin on map view, remove it
-        if (pinOnMap) {
-            mGraphicsLayer.removeGraphic(pinId);
-            pinOnMap = false;
-        }
-        // clear all routes
-        mRouteLayer.removeAll();
-
-        if (mPinOptionLayout.getVisibility() == View.VISIBLE) {
-            mPinOptionLayout.setVisibility(View.GONE);
-        }
-    }
-
-    @Override
-    public boolean onLongPress(float x, float y) {
-        // If there is a pin on map view, remove it
-        if (pinOnMap) {
-            mGraphicsLayer.removeGraphic(pinId);
-            pinOnMap = false;
-        }
-        // Clear all routes
-        mRouteLayer.removeAll();
-        // Draw pin on map
-        Point p = mMapView.toMapPoint(x, y);
-
-        Drawable pinDrawable = ResourcesCompat.getDrawable(
-                getResources(), R.drawable.pin_markonmap, getTheme());
-        PictureMarkerSymbol pin = new PictureMarkerSymbol(pinDrawable);
-        pinId = mGraphicsLayer.addGraphic(new Graphic(p, pin));
-        pinOnMap = true;
-
-        mPinOptionLayout.setVisibility(View.VISIBLE);
-        return false;
-    }
+    };
 
     @Override
     protected void onPause() {
-        mLocationManager.pause();
+        mLocationManager.stop();
         mMapView.pause();
         super.onPause();
     }
@@ -353,8 +387,10 @@ public class ClosestFacilityActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        mMapView.unpause();
-        mLocationManager.resume();
+        mMapView.resume();
+        if (!mLocationManager.isStarted()) {
+            mLocationManager.startAsync();
+        }
     }
 
     @Override

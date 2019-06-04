@@ -11,25 +11,37 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.List;
+
 import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.search.address.NTAddressSearchResult;
 
 public class ListResultsActivity extends Activity {
-    private Parcelable[] results;
+    private List<NTAddressSearchResult> results;
+    private Gson gson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_results);
+
+        gson = new Gson();
         ListView lvAddress = (ListView) findViewById(R.id.lvAddress);
 
         //Get parameter From KeyWordActivity,AttributeActivity and set adapter in listview
-        results = getIntent().getParcelableArrayExtra("results");
+        String json = getIntent().getStringExtra("results");
+        Type type = new TypeToken<List<NTAddressSearchResult>>(){}.getType();
+        results = gson.fromJson(json,type);
+        //results = getIntent().getStringExtra("results");
 
-        String[] arrAddress = new String[results.length];
-        if (results.length > 0) {
-            for (int i = 0; i < results.length; i++) {
-                NTAddressSearchResult result = (NTAddressSearchResult) results[i];
+        String[] arrAddress = new String[results.size()];
+        if (results.size() > 0) {
+            for (int i = 0; i < results.size(); i++) {
+                NTAddressSearchResult result =  results.get(i);
                 StringBuilder sb = new StringBuilder();
                 String houseNo = result.getHouseNo();
                 String moo = result.getMoo();
@@ -79,7 +91,7 @@ public class ListResultsActivity extends Activity {
     AdapterView.OnItemClickListener addressListItemClick = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            NTAddressSearchResult result = (NTAddressSearchResult) results[position];
+            NTAddressSearchResult result =  results.get(position);
             NTPoint point = result.getPoint();
             if (point != null) {
                 Intent intent = new Intent(ListResultsActivity.this, MapActivity.class)
