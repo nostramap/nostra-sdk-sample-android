@@ -2,7 +2,7 @@ package com.nostra.android.sample.multimodalsample;
 
 import android.os.StrictMode;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -28,7 +28,6 @@ import th.co.nostrasdk.map.NTMapPermissionResult;
 import th.co.nostrasdk.map.NTMapPermissionResultSet;
 import th.co.nostrasdk.map.NTMapPermissionService;
 import th.co.nostrasdk.map.NTMapServiceInfo;
-import th.co.nostrasdk.common.NTPoint;
 
 public class PinMarkOnMapActivity extends AppCompatActivity implements LoadStatusChangedListener {
     private MapView mapView;

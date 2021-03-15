@@ -30,9 +30,9 @@ android {
 
 dependencies {
     implementation  fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "com.google.code.gson:gson:2.8.5"
+    implementation "com.google.code.gson:gson:2.8.6"
     implementation  "th.co.globetech:nostra-sdk:$rootProject.ext.nostraVersion"
-    implementation  "com.android.support:appcompat-v7:$rootProject.ext.androidSupportVersion"
+    implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation  "com.esri.arcgisruntime:arcgis-android:$rootProject.ext.arcgisVersion"
-    implementation  'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
 }

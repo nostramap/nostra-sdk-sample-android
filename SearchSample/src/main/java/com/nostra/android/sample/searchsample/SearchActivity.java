@@ -2,14 +2,13 @@ package com.nostra.android.sample.searchsample;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
@@ -19,7 +18,6 @@ import com.esri.arcgisruntime.mapping.view.LocationDisplay;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.security.UserCredential;
 
-import th.co.nostrasdk.NTSDKEnvironment;
 import th.co.nostrasdk.ServiceRequestListener;
 import th.co.nostrasdk.common.NTPoint;
 import th.co.nostrasdk.map.NTMapPermissionResult;

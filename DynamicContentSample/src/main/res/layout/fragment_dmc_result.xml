@@ -31,7 +31,7 @@
             <ImageView
                 android:id="@+id/imvBack"
                 app:srcCompat="@drawable/ic_arrow_back"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:layout_gravity="center_vertical"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -40,7 +40,7 @@
 
     </RelativeLayout>
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rcvLayerResult"
         android:background="#FAFAFA"
         android:layout_width="match_parent"

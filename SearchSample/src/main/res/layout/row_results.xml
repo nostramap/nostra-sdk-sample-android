@@ -9,7 +9,7 @@
     android:minHeight="40dp"
     android:orientation="horizontal">
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -43,6 +43,6 @@
             android:layout_marginTop="0dp"
             app:layout_constraintLeft_toRightOf="@+id/imageView"
             android:layout_marginLeft="16dp" />
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

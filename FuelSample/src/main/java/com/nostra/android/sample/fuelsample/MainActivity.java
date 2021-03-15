@@ -1,12 +1,8 @@
 package com.nostra.android.sample.fuelsample;
 
 import android.os.Bundle;
-import android.support.v4.app.FragmentTabHost;
-import android.support.v7.app.AppCompatActivity;
-
-import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
-
-import th.co.nostrasdk.NTSDKEnvironment;
+import androidx.fragment.app.FragmentTabHost;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 

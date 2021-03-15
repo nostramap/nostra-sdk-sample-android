@@ -3,10 +3,8 @@ package com.nostra.android.sample.addresssearchsample;
 import android.app.LocalActivityManager;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.widget.TabHost;
-
-import th.co.nostrasdk.NTSDKEnvironment;
 
 public class SearchActivity extends AppCompatActivity {
     private LocalActivityManager localActivityManager;
