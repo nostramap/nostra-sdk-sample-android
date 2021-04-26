@@ -31,7 +31,7 @@ allprojects {
             url 'https://esri.jfrog.io/artifactory/arcgis'
         }
         maven {
-            url 'https://nostra.jfrog.io/artifactory/nostra-sdk'
+            url 'https://nostramap.jfrog.io/artifactory/nostra-sdk'
         }
     }
 }
